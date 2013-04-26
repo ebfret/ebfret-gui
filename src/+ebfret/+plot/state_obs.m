@@ -63,11 +63,11 @@ function lines = state_obs(x, varargin)
     for k = 1:K
         if isfield(lines, 'xdata')
             [lines(k).ydata lines(k).xdata] = ...
-                ebfret.stat.whist(x, lines(k).xdata, ...
+                ebfret.plot.whist(x, lines(k).xdata, ...
                     'weights', args.weights(:,k));
         else
             [lines(k).ydata lines(k).xdata]  = ...
-                ebfret.stat.whist(x, 'weights', args.weights(:,k));
+                ebfret.plot.whist(x, 'weights', args.weights(:,k));
         end
     end
     % normalize 
