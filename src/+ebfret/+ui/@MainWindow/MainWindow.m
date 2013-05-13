@@ -1,4 +1,4 @@
-classdef MainWindow < hgsetget
+classdef MainWindow < handle
     properties
         % holds references to ui elements contained in main window
         handles 

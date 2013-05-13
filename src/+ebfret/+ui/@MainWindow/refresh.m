@@ -4,11 +4,11 @@ function refresh(self, panel, index)
     % Replots axes in specified plot panel (one of {'series', 'ensemble'})
     switch panel
         case 'ensemble' 
-            controls = get(self, 'controls');
-            handles = get(self, 'handles');
-            plots = get(self, 'plots');
-            series = get(self, 'series');
-            analysis = get(self, 'analysis');
+            controls = self.controls;
+            handles = self.handles;
+            plots = self.plots;
+            series = self.series;
+            analysis = self.analysis;
             if (length(series) > 0) && (length(analysis) > 0)
                 a = controls.ensemble.value;
                 
@@ -113,11 +113,11 @@ function refresh(self, panel, index)
                 end
 
                 % store prior and posterior plots
-                set(self, 'plots', plots);
+                self.plots = plots;
 
                 % set axis properties
-                sph = get(handles.seriesPanel, 'handles');
-                eph = get(handles.ensemblePanel, 'handles');
+                sph = handles.seriesPanel.handles;
+                eph = handles.ensemblePanel.handles;
 
                 % set logarithmic axis for dwell time plots
                 set(sph.axes.dwell, 'XScale', 'log');
@@ -156,7 +156,7 @@ function refresh(self, panel, index)
                 % end
                 
                 % update ensemble plots
-                handles = get(self, 'handles');
+                handles = self.handles;
                 set_plots(handles.ensemblePanel, ...
                     'obs', plots.ensemble.obs);
                 
@@ -219,10 +219,10 @@ function refresh(self, panel, index)
                     {'obs', 'mean', 'noise', 'dwell'});
             end
         case 'series'
-            controls = get(self, 'controls');
-            plots = get(self, 'plots');
-            series = get(self, 'series');
-            handles = get(self, 'handles');
+            controls = self.controls;
+            plots = self.plots;
+            series = self.series;
+            handles = self.handles;
             if length(self.analysis) > 0
                 analysis = self.analysis(self.controls.ensemble.value);
             else
@@ -234,7 +234,7 @@ function refresh(self, panel, index)
 
                 % generate time series plot and observation histogram
                 plots.series = struct();
-                sph = get(handles.seriesPanel, 'handles');
+                sph = handles.seriesPanel.handles;
                 x = series(n).signal(series(n).clip.min:series(n).clip.max);
                 t = series(n).time(series(n).clip.min:series(n).clip.max);
                 x_lim = get(sph.axes.obs, 'XLim');
@@ -319,7 +319,7 @@ function refresh(self, panel, index)
                 set(sph.axes.time, 'XLim', [min(t), max(t)]);
                 % update time series plot
                 set_plots(handles.seriesPanel, plots.series)
-                set(self, 'plots', plots);
+                self.plots = plots;
             end
     end
 end
