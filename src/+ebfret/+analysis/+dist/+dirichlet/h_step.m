@@ -23,7 +23,7 @@ function alpha = hstep_dir(w_alpha, weights)
 %
 %  alpha : (K x 1) or (L x K) 
 %       Solved Dirichlet parameters
-
+import ebfret.analysis.dist.dirichlet.*;
 
 % get dimensions from w_alpha
 transposed = false;
@@ -107,7 +107,7 @@ for l = 1:L
 
     % now do all components
     al_old = eps * ones(size(alpha_l));
-    while kl_dir(alpha_l, al_old) > threshold
+    while kl_div(alpha_l, al_old) > threshold
         al_old = alpha_l;
         for k = 1:length(kdxs)
             a0 = sum(alpha_l .* (k ~= 1:length(kdxs)));
