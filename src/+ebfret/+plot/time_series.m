@@ -38,8 +38,8 @@ function lines = time_series(x, varargin)
     ip.StructExpand = true;
     ip.KeepUnmatched = true;
     ip.addParamValue('weights', [], @isnumeric);       
-    ip.addParamValue('state', [], @isvector);       
-    ip.addParamValue('mean', [], @isvector);       
+    ip.addParamValue('state', [], @isnumeric);       
+    ip.addParamValue('mean', [], @isnumeric);       
     ip.parse(varargin{:});
     args = ip.Results;
 
