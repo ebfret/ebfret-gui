@@ -4,7 +4,7 @@ classdef IndexControl < hgsetget
         max;
         value;
         handles;
-        parent_callback;
+        callback;
     end
     methods
         function self = IndexControl(varargin)
@@ -28,16 +28,17 @@ classdef IndexControl < hgsetget
                              @(s) any(strcmpi(s, ...
                                 {'inches', 'centimeters', 'points', ...
                                  'normalized', 'pixels'})));       
-            ip.addParamValue('parent_callback', @(n) show_series(gco(), n));
+            ip.addParamValue('callback', @(value) nan);
             ip.addParamValue('min', 0, @isscalar);
             ip.addParamValue('max', 0, @isscalar);
             ip.addParamValue('value', 0, @isscalar);
             ip.parse(varargin{:});
             args = ip.Results;
 
-            % round limits to nearest integer
+            % round limits and value to nearest integer
             args.min = round(args.min);
             args.max = round(args.max);
+            args.value = round(args.value);
 
             % initialize enclosing frame
             handles.panel ...
@@ -54,113 +55,127 @@ classdef IndexControl < hgsetget
 
             % intialize control elements in frame: 
             % text edit, slider, prev & next buttons
-            handles.indexEdit ...
+            self.handles.indexEdit ...
                 = uicontrol('parent', handles.panel, ... 
                             'style', 'edit', ...
                             'backGroundColor', [1 1 1], ...
-                            'callback', @(source, event) callback(self, source, event), ...
+                            'callback', @(source, event) self.control_callback(source, event), ...
                             'units', 'normalized', ...
                             'position', [0.2*hp, vp, 0.1-0.2*hp, 1-2*vp]);
-            handles.slider ...
+            self.handles.slider ...
                 = uicontrol('parent', handles.panel, ... 
                             'style', 'slider', ...
                             'min', args.min-eps, ...
                             'max', args.max+eps, ...
                             'value', args.value, ...
-                            'callback', @(source, event) callback(self, source, event), ...
+                            'callback', @(source, event) self.control_callback(source, event), ...
                             'units', 'normalized', ...
                             'position', [0.1+hp, vp, 0.7-hp, sh]);
-            handles.prevButton ...
+            self.handles.prevButton ...
                 = uicontrol('parent', handles.panel, ...
                             'style', 'push', ...
                             'string', 'Prev', ...
-                            'callback', @(source, event) callback(self, source, event), ...
+                            'callback', @(source, event) self.control_callback(source, event), ...
                             'units', 'normalized', ...
                             'position', [0.8+hp, vp, 0.1-hp, 1-2*vp]);
-            handles.nextButton ...
+            self.handles.nextButton ...
                 = uicontrol('parent', handles.panel, ...
                             'style', 'push', ...
                             'string', 'Next', ...
-                            'callback', @(source, event) callback(self, source, event), ...
+                            'callback', @(source, event) self.control_callback(source, event), ...
                             'units', 'normalized', ...
                             'position', [0.9+hp, vp, 0.1-2*hp, 1-2*vp]);
-            set(self, 'handles', handles);
-            set(self, 'parent_callback', args.parent_callback);
-
-            set(self, 'max', nan, 'min', nan, 'value', nan);
-            set_limits(self, args.max, args.min);
-            set_value(self, args.value);
+            self.set('min', args.min, 'max', args.max, 'value', args.value, 'callback', args.callback);
         end
         % callback wrapper
-        function callback(self, source, event)
-            handles = get(self, 'handles');
-            state.value = get(self, 'value');
+        function control_callback(self, source, event)
             switch source
                 % get new value
-                case handles.indexEdit
-                    value = round(str2num(get(handles.indexEdit, 'string')));
-                case handles.slider
-                    value = round(get(handles.slider, 'value'));
-                case handles.prevButton
-                    value = state.value - 1;
-                case handles.nextButton
-                    value = state.value + 1;
+                case self.handles.indexEdit
+                    value = round(str2num(get(self.handles.indexEdit, 'string')));
+                case self.handles.slider
+                    value = round(get(self.handles.slider, 'value'));
+                case self.handles.prevButton
+                    value = self.value - 1;
+                case self.handles.nextButton
+                    value = self.value + 1;
             end
-            % update widget value
-            set_value(self, value);
-        end
-        function set_value(self, value)
-            % ensure value in range
-            value = max(min(value, self.max), self.min);
-            % check if update needed
-            if value ~= self.value;
-                % update edit box and slider value
-                set(self.handles.indexEdit, 'string', sprintf('%d', value));
-                set(self.handles.slider, 'value', value);
-                % disable / enable next button if at max / previously at max
-                if (value == self.max) | isnan(value)
-                    set(self.handles.nextButton, 'enable', 'off');
-                end
-                if (self.value == self.max) & (value < self.max)
-                    set(self.handles.nextButton, 'enable', 'on');
-                end
-                % disable / enable prev button if at min / previously at min
-                if (value == self.min) | isnan(value)
-                    set(self.handles.prevButton, 'enable', 'off');
-                end
-                if (self.value == self.min) & (value < self.min)
-                    set(self.handles.prevButton, 'enable', 'on');
-                end
-                % set new state value
+            if value ~= self.value
+                % update widget value
                 set(self, 'value', value);
-                % send update signal to main window
-                parent_callback = get(self, 'parent_callback');
-                parent_callback(value);
+                % run callback
+                self.callback(value);
             end
         end
-        function set_limits(self, max_val, min_val)
-            if nargin < 3
-                min_val = 1;
+        % function value = set_value(self, value)
+        %     % ensure value in range
+        %     value = max(min(value, self.max), self.min);
+        %     % update edit box and slider value
+        %     set(self.handles.indexEdit, 'string', sprintf('%d', value));
+        %     set(self.handles.slider, 'value', value);
+        %     % check if update needed
+        %     if value ~= self.value;
+        %         % disable / enable next button if at max / previously at max
+        %         if (value == self.max) | isnan(value)
+        %             set(self.handles.nextButton, 'enable', 'off');
+        %         end
+        %         if (value < self.max)
+        %             set(self.handles.nextButton, 'enable', 'on');
+        %         end
+        %         % disable / enable prev button if at min / previously at min
+        %         if (value == self.min) | isnan(value)
+        %             set(self.handles.prevButton, 'enable', 'off');
+        %         end
+        %         if (value > self.min)
+        %             set(self.handles.prevButton, 'enable', 'on');
+        %         end
+        %         % set new state value
+        %         set(self, 'value', value);
+        %         % send update signal to main window
+        %         parent_callback = get(self, 'parent_callback');
+        %         parent_callback(value);
+        %     end
+        % end
+        function [value, lim] = set(self, varargin)
+            properties = struct(varargin{:});
+            if isfield(properties, 'callback')
+                self.callback = properties.callback;
             end
-            max_val = round(max_val);
-            min_val = round(min_val);
-            % update slider limits
-            set(self.handles.slider, ...
-                'min', min_val-eps, 'max', max_val+eps);
+            if isfield(properties, 'min')
+                self.min  = round(properties.min);
+                set(self.handles.slider, 'min', self.min-eps);
+            end
+            if isfield(properties, 'max')
+                self.max  = round(properties.max);
+                set(self.handles.slider, 'max', self.max+eps);
+            end
+            if isfield(properties, 'value')
+                self.value = max(min(round(properties.value), self.max), self.min);
+                set(self.handles.indexEdit, 'string', sprintf('%d', self.value));
+                set(self.handles.slider, 'value', self.value);
+            end
             % enable / disable controls as needed
-            if max_val > min_val
-                set(self.handles.indexEdit, 'enable', 'on'); 
-                set(self.handles.slider, 'enable', 'on'); 
-                set(self.handles.prevButton, 'enable', 'on'); 
-                set(self.handles.nextButton, 'enable', 'on'); 
-            else
+            if self.max == self.min
                 set(self.handles.indexEdit, 'enable', 'off'); 
                 set(self.handles.slider, 'enable', 'off'); 
                 set(self.handles.prevButton, 'enable', 'off'); 
                 set(self.handles.nextButton, 'enable', 'off'); 
+            else
+                set(self.handles.indexEdit, 'enable', 'on'); 
+                set(self.handles.slider, 'enable', 'on'); 
+                if (self.value == self.max) | isnan(self.value)
+                    set(self.handles.nextButton, 'enable', 'off');
+                end
+                if (self.value < self.max)
+                    set(self.handles.nextButton, 'enable', 'on');
+                end
+                if (self.value == self.min) | isnan(self.value)
+                    set(self.handles.prevButton, 'enable', 'off');
+                end
+                if (self.value > self.min)
+                    set(self.handles.prevButton, 'enable', 'on');
+                end
             end
-            % update value
-            set_value(self, self.value);
         end
     end
 end

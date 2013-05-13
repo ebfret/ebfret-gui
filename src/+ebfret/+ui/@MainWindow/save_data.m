@@ -3,11 +3,11 @@ function save_data(self)
         uiputfile({'*.mat', 'ebFRET saved session (.mat)';});
     switch findex
         case 1
-            status = get(self, 'status');
+            controls = get(self, 'controls');
             series = get(self, 'series');
             analysis = get(self, 'analysis');
             plots = get(self, 'plots');
             save(sprintf('%s/%s', fpath, fname), ...
-                'status', 'series', 'analysis', 'plots');
+                'controls', 'series', 'analysis', 'plots');
     end
 end

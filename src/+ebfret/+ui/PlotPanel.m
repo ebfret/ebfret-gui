@@ -79,7 +79,7 @@ classdef PlotPanel < hgsetget
         function clear_plots(self, fields)
             get(self, 'plots');
             if nargin < 2 
-                fields = fieldnames(plots);
+                fields = fieldnames(self.handles.axes);
             elseif isstr(fields)
                 fields = {fields};
             end
@@ -104,7 +104,7 @@ classdef PlotPanel < hgsetget
                 cla(handles.axes.(fields{f}));
                 warning(s);
                 % do plots
-                for p = plots.(fields{f});
+                for p = plots.(fields{f})(:)';
                     p.parent = handles.axes.(fields{f});
                     line(p);
                 end
