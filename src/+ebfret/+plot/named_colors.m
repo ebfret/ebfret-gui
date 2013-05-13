@@ -1,4 +1,4 @@
-function c = colors()
+function c = named_colors()
 % c = colors()
 %
 % Returns struct with default list of colors
