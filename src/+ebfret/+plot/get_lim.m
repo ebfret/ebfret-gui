@@ -1,4 +1,4 @@
-function [x_lim y_lim] = getlim(lines, threshold, pad)
+function [x_lim y_lim] = get_lim(lines, threshold, pad)
     % [x_lim y_lim] = getlim(lines, threshold, pad)
     % 
     % Calculates limits for x and y axis. 
@@ -15,10 +15,21 @@ function [x_lim y_lim] = getlim(lines, threshold, pad)
         y_data = mean(lines(l).ydata,2);
         y_min(l) = min(y_data);
         y_max(l) = max(y_data);
+    end
+    % get global max and min
+    y_min = min(y_min);
+    y_max = max(y_max);
+
+    for l = 1:length(lines)
         if (threshold > 0)
-            msk = y_data > (y_min(l) + threshold * y_max(l));
-            x_min(l) = lines(l).xdata(find(msk, 1, 'first'));
-            x_max(l) = lines(l).xdata(find(msk, 1, 'last'));
+            msk = mean(lines(l).ydata,2) > (y_min + threshold * y_max);
+            if any(msk)
+                x_min(l) = lines(l).xdata(find(msk, 1, 'first'));
+                x_max(l) = lines(l).xdata(find(msk, 1, 'last'));
+            else
+                x_min(l) = inf;
+                x_max(l) = -inf;
+            end
         else
             x_min(l) = min(lines(l).xdata);
             x_max(l) = max(lines(l).xdata);
