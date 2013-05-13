@@ -1,4 +1,4 @@
-classdef PlotPanel < handle
+classdef PlotPanel < hgsetget
     properties
         handles
         plots
@@ -42,7 +42,7 @@ classdef PlotPanel < handle
                     axes('parent', handles.panel, ...
                          'outerposition', args.axes.(fld));
             end
-            self.handles = handles;
+            set(self, 'handles', handles);
 
             % initialize (empty) plot data
             clear_plots(self, fieldnames(handles.axes));
@@ -51,21 +51,21 @@ classdef PlotPanel < handle
         function set_plots(self, varargin)
             args = struct(varargin{:});
             fields = fieldnames(args);
-            plots = self.plots;
+            plots = get(self, 'plots');
             for f = 1:length(fields)
                 if iscell(args.(fields{f}))
                     args.(fields{f}) = struct(args.(fields{f}){:});
                 end
                 plots.(fields{f}) = args.(fields{f});
             end
-            self.plots = plots;
+            set(self, 'plots', plots);
             refresh(self, fields);
         end
         % updates axis properties (see axes)
         function set_props(self, varargin)
             args = struct(varargin{:});
             axes = fieldnames(args);
-            handles = self.handles;
+            handles = get(self, 'handles');
             for a = 1:length(axes)
                 if iscell(args.(axes{a}))
                     args.(axes{a}) = struct(args.(axes{a}){:});
@@ -77,7 +77,7 @@ classdef PlotPanel < handle
         end
         % clears plot data
         function clear_plots(self, fields)
-            plots = self.plots;
+            get(self, 'plots');
             if nargin < 2 
                 fields = fieldnames(self.handles.axes);
             elseif isstr(fields)
@@ -86,13 +86,13 @@ classdef PlotPanel < handle
             for f = 1:length(fields)
                 plots.(fields{f}) = struct([]);
             end
-            self.plots = plots;
+            set(self, 'plots', plots);
             refresh(self, fields);
         end
         % replots panels
         function refresh(self, fields)
-            plots = self.plots;
-            handles = self.handles;
+            plots = get(self, 'plots');
+            handles = get(self, 'handles');
             if nargin < 2
                 fields = fieldnames(handles.axes);
             elseif isstr(fields)

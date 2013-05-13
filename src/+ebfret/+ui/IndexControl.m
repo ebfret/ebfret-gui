@@ -1,4 +1,4 @@
-classdef IndexControl < handle
+classdef IndexControl < hgsetget
     properties
         min;
         max;
