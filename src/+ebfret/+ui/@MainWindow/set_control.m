@@ -1,6 +1,6 @@
 function set_control(self, varargin)
     % initialize controls struct if necessary
-    if ~isprop(self, 'controls');
+    if isempty(self.controls)
         self.controls = struct();
     end
     controls = struct(varargin{:});
@@ -30,7 +30,7 @@ function set_control(self, varargin)
         % update ui controls as required
         switch control
             case 'series'
-                self.handles.seriesControl.set(controls.series);
+                self.handles.seriesControl.set_prop(controls.series);
                 if ~isfield(self.controls, 'series') ...
                     || (self.controls.series.value ~= self.handles.seriesControl.value)
                     self.controls.series.value = self.handles.seriesControl.value;
@@ -46,7 +46,7 @@ function set_control(self, varargin)
                         'string', sprintf('%d', self.series(n).clip.max));
                 end
             case 'ensemble'
-                self.handles.ensembleControl.set(controls.ensemble);
+                self.handles.ensembleControl.set_prop(controls.ensemble);
                 if ~isfield(self.controls, 'ensemble') ...
                     || ~isfield(self.controls.ensemble, 'min') ...
                     || (self.controls.ensemble.min ~= self.handles.ensembleControl.min)

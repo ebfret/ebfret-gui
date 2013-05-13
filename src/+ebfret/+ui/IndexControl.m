@@ -85,7 +85,7 @@ classdef IndexControl < handle
                             'callback', @(source, event) self.control_callback(source, event), ...
                             'units', 'normalized', ...
                             'position', [0.9+hp, vp, 0.1-2*hp, 1-2*vp]);
-            self.set('min', args.min, 'max', args.max, 'value', args.value, 'callback', args.callback);
+            self.set_prop('min', args.min, 'max', args.max, 'value', args.value, 'callback', args.callback);
         end
         % callback wrapper
         function control_callback(self, source, event)
@@ -102,7 +102,7 @@ classdef IndexControl < handle
             end
             if value ~= self.value
                 % update widget value
-                set(self, 'value', value);
+                self.set_prop('value', value);
                 % run callback
                 self.callback(value);
             end
@@ -136,7 +136,7 @@ classdef IndexControl < handle
         %         parent_callback(value);
         %     end
         % end
-        function [value, lim] = set(self, varargin)
+        function [value, lim] = set_prop(self, varargin)
             properties = struct(varargin{:});
             if isfield(properties, 'callback')
                 self.callback = properties.callback;
