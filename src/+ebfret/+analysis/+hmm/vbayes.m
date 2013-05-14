@@ -226,7 +226,7 @@ for it = 1:args.max_iter
 
     % check whether points need to be masked out
     if strcmp(args.ignore, 'none')
-        w = hmm.m_step(u, x, g, xi);
+        [w expect] = hmm.m_step(u, x, g, xi);
     else
         z_hat = hmm.viterbi(E_ln_px_z, E_ln_A, E_ln_pi);
         [g_f, xi_f] = hmm.jitter_filter(z_hat, g, xi, args.ignore); 
@@ -242,7 +242,6 @@ for it = 1:args.max_iter
     end
 end
 
-expect = struct();
 expect.gamma = g;
 expect.xi = xi;
 expect.ln_Z = ln_Z;
