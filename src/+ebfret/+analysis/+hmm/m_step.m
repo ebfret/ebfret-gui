@@ -1,4 +1,4 @@
-function w = m_step(u, x, g, xi)
+function [w ev] = m_step(u, x, g, xi)
     % w = m_step_hmm(u, x, g, xi)
     %
     % M-step: updates parameters w for q(theta | w)
@@ -10,7 +10,7 @@ function w = m_step(u, x, g, xi)
     [T] = length(x);
 
     % Updates for mu, beta, W, nu
-    w = ebfret.analysis.dist.normwish.m_step(u, x, g);
+    [w ev] = ebfret.analysis.dist.normwish.m_step(u, x, g);
 
     % Update for pi
     %
