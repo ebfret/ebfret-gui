@@ -66,6 +66,7 @@ E_log_l = mean(psi(w_a) - log(w_b), 2);
 %
 %   psi(u_a) - log(u_a) 
 %       = E[log(lambda)] - log(E[lambda])
+a_old = args.a0;
 a = args.a0;
 it = 0;
 while true
@@ -83,13 +84,14 @@ while true
     H = psi(1,a) - 1 ./ a; 
     % da = (H^-1 g)
     da = g ./ H;
-    % break if converged
-    if (abs(da) ./ a) < args.threshold
-        break
-    end
     % ensure a > 1 
     a = max(a - da, 1 + 1e-3 * (a - 1));
+    % break if converged
+    if all((abs(a - a_old) ./ a) < args.threshold)
+        break
+    end
     it = it + 1;
+    a_old = a;
 end
 
 % m = E[m l] / E[l]
