@@ -1,5 +1,5 @@
-function u = hstep_hmm(w, weights)
-% u = hstep_hmm(w, weights)
+function u = hstep(w)
+% u = hstep(w)
 %
 % Hyper parameter updates for empirical Bayes inference (EB)
 % on a single-molecule FRET dataset.
@@ -34,17 +34,14 @@ function u = hstep_hmm(w, weights)
 %           Dirichlet prior for each row of transition matrix
 %       .pi (K x 1)
 %           Dirichlet prior for initial state probabilities
-%       .mu (K x D)
+%       .mu (K x 1)
 %           Normal-Wishart prior - state means 
 %       .beta (K x 1)
 %           Normal-Wishart prior - state occupation count
-%       .W (K x D x D)
+%       .W (K x 1 x 1)
 %           Normal-Wishart prior - state precisions
 %       .nu (K x 1)
 %           Normal-Wishart prior - degrees of freedom
-%
-%   weights : (N x 1) optional
-%       Weighting for each trace in updates.
 %
 %
 % Outputs
@@ -53,64 +50,18 @@ function u = hstep_hmm(w, weights)
 %   u : struct  
 %       Hyperparameters for the prior distribution p(theta | u)
 %       (same fields as w)
-%
-% Jan-Willem van de Meent
-% $Revision: 1.10$  $Date: 2011/08/04$
 
-% Note: this currently does not work for 2D donor/acceptor inference
-%
-% Explanation of Updates
-% ----------------------
-%
-% For a prior/posterior in Conjugate Exponential form 
-%
-%   p(theta)  =  f(nu, chi) g(theta)^nu exp[ eta(theta) . chi ]
-%   q(theta)  =  f(nu', chi') g(theta)^nu' exp[ eta(theta) . chi' ]
-%
-% The derivatives of L w.r.t. to the parameters are given by
-% 
-%   Grad_nu L  =  (Grad_nu f(eta, nu)) / f(eta, nu)
-%                 + <ln g(theta)>_q(theta)  
-%
-% Similarly the derivatives wrt to nu_i are given by                   
-%
-%   Grad_chi_i L =  (Grad_chi_i f(eta, nu)) / f(eta, nu)
-%                   + <eta_i>_q(theta)
-%
-% We now define the averaged expectation value over all traces:
-%
-%   E[theta]  =  1/N  Sum_n  <theta>_q(theta | w(n))
-%
-% The system of equations Grad Sum_n L^n = 0 can now be solved
-% from the above identities, resulting in the following updates
-%
-%   (mu, lambda) ~ NormalGamma(mu, lambda | u.mu, u.beta, u.nu, u.W)
-%
-%   u.beta  =  u.nu - 1
-%   u.mu  =  E[mu lambda] / E[lambda]
-%   u.W  =  E[lambda] / u.nu
-%   -<log g> =  1/2 ( 1 / (u.nu -1)
-%                     + E[mu lambda]^2 / E[lambda]
-%                     + Log[pi / uW]
-%                     - psi(u.nu/2) )
-%       
-% {A(k,:)} ~ Dir(A_k | u.A(k,:))
-%
-%   psi(Sum u.A(k,:)) - psi(u.A(k,:)) = -E[log A(k,:)]
-%
-% pi ~ Dir(pi | u.pi)
-%
-%   psi(Sum u.pi) - psi(u.pi) = -E[log pi] 
-
-% intialize empty weights if unspecified
-if nargin < 2
-    weights = ones(size(w));
-end
-% run normal-wishart updates for emission model parameters
-u = ebfret.analysis.dist.normwish.h_step(w, weights);
+% run normal-gamma updates for emission model parameters
+[u_mu, u_beta, u_a, u_b] = ...
+    ebfret.analysis.dist.normgamma.h_step(...
+        cat(2, w.mu), cat(2, w.beta), 0.5 * cat(2, w.nu), 0.5 ./ cat(2, w.W));
+u.mu = u_mu;
+u.beta = u_beta;
+u.nu = 2 * u_a;
+u.W = 0.5 ./ u_b;
 % add dirichlet updates for transition matrix
-u.A = ebfret.analysis.dist.dirichlet.h_step({w.A}, weights);
+u.A = ebfret.analysis.dist.dirichlet.h_step({w.A});
 % add dirichlet updates for initial state probabilities
-u.pi = ebfret.analysis.dist.dirichlet.h_step({w.pi}, weights);
+u.pi = ebfret.analysis.dist.dirichlet.h_step({w.pi});
 % ensure field names in correct order
 u = orderfields(u, fieldnames(w));
