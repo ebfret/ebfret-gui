@@ -22,7 +22,7 @@ function [u_m, u_beta, u_a, u_b] = h_step(w_m, w_beta, w_a, w_b, varargin)
 
 ip = inputParser();
 ip.StructExpand = true;
-ip.addOptional('a0', [], @isstruct);       
+ip.addOptional('a0', 2, @isnumeric);       
 ip.addParamValue('max_iter', 1000, @isscalar);       
 ip.addParamValue('threshold', 1e-6, @isscalar);       
 ip.addParamValue('eps', 1e-12, @isscalar);       
@@ -66,18 +66,14 @@ E_log_l = mean(psi(w_a) - log(w_b), 2);
 %
 %   psi(u_a) - log(u_a) 
 %       = E[log(lambda)] - log(E[lambda])
-if isempty(args.a0)
-    a = mean(w_a, 2);
-else
-    a = args.a0;
-end
+a = args.a0;
 it = 0;
 while true
     % break if maximum iterations reached
     if it >= args.max_iter
-        warning('stat.prior.NormGamma.from_expect_param:NotConverged', ...
+        warning('ebfret.analysi.dist.normgamma.h_step:NotConverged', ...
                 'Newton solver for hyperparaters did not converge in %d iterations.', ...
-                max_iter)    
+                args.max_iter)    
         break
     end
     % gradient 
