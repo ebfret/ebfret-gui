@@ -32,9 +32,9 @@ args = ip.Results;
 % get dimensions from w_alpha
 transposed = false;
 if iscell(w_alpha)
-    N = length(w_alpha);
     [L K] = size(w_alpha{1});
     w_alpha = cat(3, w_alpha{:});
+    N = size(w_alpha, 3);
     if (K == 1) & (L > 1)
         % assume that vector valued input means L=1, 
         % and swap K with L
@@ -67,6 +67,8 @@ end
 % initialize inital guess if not specified
 if isempty(args.alpha0)
     args.alpha0 = ones(L, K);
+else
+    args.alpha0 = reshape(args.alpha0, [L K]);
 end
 
 % theta(l,:) ~ Dirichlet
@@ -93,6 +95,7 @@ while true
     dalpha = bsxfun(@minus, g, b) ./ q;
     % set constraint: alpha + dalpha >= 1e-3 alpha
     delta = min(min((1 - 1e-3) * alpha ./ dalpha, 1) .* (dalpha > 0) + (dalpha <= 0), [], 2);
+    delta(find(~sum(dalpha,2)), :) = 0;
     % break if converged
     if (max(abs(dalpha(:)) ./ alpha(:)) < args.threshold)
         break
