@@ -1,5 +1,5 @@
-function alpha = hstep_dir(w_alpha, weights)
-% alpha = hstep_dir(w_alpha, weights)
+function alpha = hstep_dir(w_alpha, varargin)
+% alpha = hstep_dir(w_alpha)
 %
 % Empirical bayes step for Dirichlet prior. Solves equations
 % 
@@ -11,19 +11,23 @@ function alpha = hstep_dir(w_alpha, weights)
 % ------
 %
 %   w_alpha : (N x 1) cell array or (K x N) or (L x K x N)
-%       Posetrior paremeters for Dirichlet distribution.
+%       Posterior paremeters for Dirichlet distribution.
 %       Each w_alpha{n} should contain either a single vector
 %       of size (1 x K) or a matrix of size (L x K)
-%
-%   weights : (N x 1), optional
-%       Weight for each set of posterior parameters in w_alpha
 %
 % Outputs
 % -------
 %
 %  alpha : (K x 1) or (L x K) 
 %       Solved Dirichlet parameters
-import ebfret.analysis.dist.dirichlet.*;
+ip = inputParser();
+ip.StructExpand = true;
+ip.addOptional('alpha0', [], @isnumeric);       
+ip.addParamValue('max_iter', 1000, @isscalar);       
+ip.addParamValue('threshold', 1e-6, @isscalar);       
+ip.addParamValue('eps', 1e-12, @isscalar);       
+ip.parse(varargin{:});
+args = ip.Results;
 
 % get dimensions from w_alpha
 transposed = false;
@@ -54,70 +58,55 @@ else
             transposed = true;
         end
     else
-        error('hstep_dir:invalidArgs', ...
+        error('ebfret.analysis.dist.Dirichlet.h_step:invalidArgs', ...
               'w_alpha may be have size [K N] or [L K N]. input has size [%s]', ...
                sprintf('%d ', size(w_alpha)));
     end
 end
 
-% set small number > eps
-EPS = 10 * eps;
-
-% set optimization settings
-threshold = 1e-6;
-opts = optimset('display', 'off', 'tolX', threshold, 'tolFun', eps);
-
-% initialize dummy weights if not specified
-if nargin < 2
-    weights = ones([1 1 N]) / N;
-elseif length(weights(:)) ~= N
-    error('hstep_dir:invalidArgs', ...
-          'input weights has incorrect number of elements');
-else
-    % ensure weights are normalized and aligned
-    weights = weights / sum(weights(:));
-    weights = reshape(weights, [1 1 N]);
+% initialize inital guess if not specified
+if isempty(args.alpha0)
+    args.alpha0 = ones(L, K);
 end
 
 % theta(l,:) ~ Dirichlet
 %
 % E[log theta(l,k)] 
-%   = sum_n weights(n) 
-%           * (psi(w_alpha(l,k,n)) - psi(sum_k w_alpha(l,k,n)))
-E_log_q = sum(bsxfun(@times, weights, ...
-                         bsxfun(@minus, ...
-                                psi(w_alpha + EPS), ...
-                                psi(sum(w_alpha + EPS, 2)))), 3);
-E_q = exp(E_log_q);
+%   = mean_n (psi(w_alpha(l,k,n)) - psi(sum_k w_alpha(l,k,n)))
+E_log_q = mean(bsxfun(@minus, ...
+                      psi(w_alpha + args.eps), ...
+                      psi(sum(w_alpha + args.eps, 2))), 3);
 
-% alpha(l,:) solve system of equations
-alpha = mean(w_alpha, 3);
-for l = 1:L
-    % ignore elements with a zero mean
-    kdxs = find(alpha(l,:));
-    alpha_l = alpha(l, kdxs);
-    E_log_q_l = E_log_q(l, kdxs);
-    E_q_l = E_q(l, kdxs);
-    
-    % get amplitude in right ballpark first
-    root_fun = @(A) (E_log_q_l - (psi(A * alpha_l) ...
-                     - psi(sum(A * alpha_l)))) .* E_q_l;
-    A = lsqnonlin(root_fun, 1, 0, Inf, opts);
-    alpha_l = A * alpha_l;
-
-    % now do all components
-    al_old = eps * ones(size(alpha_l));
-    while kl_div(alpha_l, al_old) > threshold
-        al_old = alpha_l;
-        for k = 1:length(kdxs)
-            a0 = sum(alpha_l .* (k ~= 1:length(kdxs)));
-            root_fun = @(alk) (E_log_q_l(k) - (psi(alk) - psi(alk + a0))); 
-            alpha_l(k) = lsqnonlin(root_fun, alpha_l(k), 0, Inf, opts);
-        end
+% do newton iterations
+it = 0;
+alpha = args.alpha0;
+while true
+    % sum of counts
+    Alpha = sum(alpha, 2);
+    % gradient g(k)
+    g = bsxfun(@minus, psi(Alpha), psi(alpha) - E_log_q);
+    % hessian H(k,l) = z + q(k) d(k,l) 
+    z = psi(1, Alpha);
+    q = -psi(1, alpha);
+    % dalpha = (H^-1 g)(k) = (g(k) - b(k)) / q(k)
+    b = sum(g ./ q, 2) ./ (1./z + sum(1./q, 2));
+    dalpha = bsxfun(@minus, g, b) ./ q;
+    % set constraint: alpha + dalpha >= 1e-3 alpha
+    delta = min(min((1 - 1e-3) * alpha ./ dalpha, 1) .* (dalpha > 0) + (dalpha <= 0), [], 2);
+    % break if converged
+    if (max(abs(dalpha(:)) ./ alpha(:)) < args.threshold)
+        break
     end
-    
-    % substitute non-zero elements back in
-    alpha(l,kdxs) = alpha_l;
+    % break if maximum iterations reached
+    if it >= args.max_iter
+        warning('ebfret.analysis.dist.Dirichlet.h_step:NotConverged', ...
+                'Newton solver for hyperparaters did not converge in %d iterations.', ...
+                max_iter)    
+        break
+    else 
+        alpha = alpha - bsxfun(@times, delta, dalpha);
+        it = it + 1;
+    end
 end
 
 % ensure output has same shape as input
