@@ -228,6 +228,8 @@ function refresh(self, panel, index)
             else
                 analysis = struct([]);
             end
+            
+            
             clear_plots(handles.seriesPanel);
             if (length(series) > 0) & (self.controls.series.value > 0)
                 n = self.controls.series.value;
@@ -241,6 +243,10 @@ function refresh(self, panel, index)
                 x_bins = linspace(x_lim(1), x_lim(end), ...
                             max(10, min(length(x)/10, 200)));
                 if ~isempty(analysis)
+                    % set state colors
+                    self.controls.colors.state = ...
+                        ebfret.plot.line_colors(analysis.dim.states);
+
                     pargs = struct();
                     try
                         pargs.weights = analysis.expect(n).z;
@@ -304,7 +310,6 @@ function refresh(self, panel, index)
                                     'color', self.controls.colors.state), ...
                                 scale);
                     catch err
-                        rethrow(err)
                     end
                 else
                     plots.series.time = ebfret.plot.time_series(...

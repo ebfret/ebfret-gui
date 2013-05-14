@@ -42,6 +42,7 @@ function run_ebayes(self, varargin)
 
         % switch gui to current analysis
         self.set_control('ensemble', struct('value', a));
+        self.controls.redraw.ensemble.last = tic();
         drawnow();
         
         % start empirical bayes iterations
@@ -53,12 +54,24 @@ function run_ebayes(self, varargin)
             else
                 num_restarts = self.controls.all_restarts;
             end
-            % do variational bayes updates for posterior
-            self.run_vbayes(...
-                'analysis', a, ...
-                'restarts', num_restarts, ...
-                'threshold', self.controls.run_precision, ...
-                'max_iter', args.max_iter);
+
+            eb_interval = round(0.1 * length(self.series));
+            eb_last = 0;
+            for n = 1:length(self.series)
+                % do variational bayes updates for posterior
+                self.run_vbayes(...
+                    'analysis', a, ...
+                    'series', n, ...
+                    'restarts', num_restarts, ...
+                    'threshold', self.controls.run_precision, ...
+                    'max_iter', args.max_iter);
+                % do empirical bayes updates for prior
+                if (n - eb_last) > eb_interval
+                    w = self.analysis(a).posterior(find(~[self.series.exclude]));
+                    self.analysis(a).prior = ebfret.analysis.hmm.h_step(w);
+                    eb_last = n;
+                end
+            end
 
             % check convergence
             L(it) = sum(self.analysis(a).lowerbound);
@@ -79,13 +92,17 @@ function run_ebayes(self, varargin)
                 return
             end
 
-            % do empirical bayes updates for prior
-            n = find(~[self.series.exclude]);
-            w = self.analysis(a).posterior(n);
-            self.analysis(a).prior = ebfret.analysis.hmm.h_step(w);
-            % refresh plots
-            self.refresh('ensemble');
-            drawnow();
+            % run iterative empirical bayes update
+            % (assuming constant posterior statistics)
+            ns = find(~[self.series.exclude]);
+            u = self.analysis(a).prior;
+            w = self.analysis(a).posterior(find(~[self.series.exclude]));
+            E = self.analysis(a).expect(find(~[self.series.exclude]));
+            self.analysis(a).prior = ebfret.analysis.hmm.h_step(w, u, 'expect', E);
+
+            % % refresh plots
+            % self.refresh('ensemble');
+            % drawnow();
 
             % increment iteration counter
             it = it + 1;

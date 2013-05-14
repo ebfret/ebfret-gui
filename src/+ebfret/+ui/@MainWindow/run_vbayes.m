@@ -20,12 +20,13 @@ function run_vbayes(self, varargin)
     
     % loop over different analysis sets
     for a = args.analysis
-        % switch gui to current analysis
-        self.set_control('ensemble', struct('value', a));
-        self.set_control('series', struct('value', args.series(1)));
-        % drawnow();
-        last_refresh.ensemble = tic();
-        last_refresh.series = tic();
+        % % switch gui to current analysis
+        % self.set_control('ensemble', struct('value', a));
+
+        % % drawnow();
+        % last_refresh.ensemble = tic();
+        % last_refresh.series = tic();
+
         % get prior
         u = self.analysis(a).prior;
         % populate posterior field names if necessary
@@ -43,6 +44,8 @@ function run_vbayes(self, varargin)
             x = self.get_signal(n);
 
             if ~isempty(x)
+                % self.set_control('series', struct('value', args.series(1)));
+
                 % construct initial guesses for posterior parameters
                 w0 = u([]);
                 if (length(self.analysis(a).posterior) >= n) ...
@@ -86,27 +89,36 @@ function run_vbayes(self, varargin)
                 self.analysis(a).lowerbound(n) = vb(r_max).L(end);
                 self.analysis(a).posterior(n) = vb(r_max).w;
                 self.analysis(a).expect(n).z = vb(r_max).E.gamma;
+                self.analysis(a).expect(n).zz = squeeze(sum(vb(r_max).E.xi, 1));
+                self.analysis(a).expect(n).x = vb(r_max).E.xmean;
+                self.analysis(a).expect(n).xx = vb(r_max).E.xvar + vb(r_max).E.xmean.^2;
                 self.analysis(a).restart(n) = r_max + args.restarts - length(w0);
+
+                % update plots if redraw_interval exceeded
+                if toc(self.controls.redraw.series.last) > self.controls.redraw.series.interval
+                    % refresh series plots
+                    self.set_control('series', struct('value', n));
+                    drawnow();
+                    % set last refresh
+                    self.controls.redraw.series.last = tic();
+                end
+                if toc(self.controls.redraw.ensemble.last) > self.controls.redraw.ensemble.interval
+                    % refresh ensemble plots
+                    self.set_control('ensemble', struct('value', a));
+                    self.refresh('ensemble');
+                    drawnow();
+                    % set last refresh
+                    self.controls.redraw.ensemble.last = tic();
+                end
             end
             
             % % debug:
             % L = arrayfun(@(vb) vb.L(end), vb);
             % fprintf('%s\n', sprintf('%.0e    ', (L - L_max) / abs(L_max)));
 
-            % update plots if redraw_interval exceeded
-            if toc(last_refresh.series) > self.controls.refresh.series
-                self.set_control('series', struct('value', n))
-                last_refresh.series = tic();
-                drawnow();
-            end
-            if toc(last_refresh.ensemble) > self.controls.refresh.ensemble
-                self.refresh('ensemble');
-                last_refresh.ensemble = tic();
-                drawnow();
-            end
         end
-        self.refresh('ensemble');
-        drawnow();
-        last_redraw = tic();
+        % self.refresh('ensemble');
+        % drawnow();
+        % last_redraw = tic();
     end
 end
