@@ -1,5 +1,5 @@
-function w = m_step_nw(u, x, g)
-    % w = m_step_nw(u, x, g)
+function [w ev] = m_step(u, x, g)
+    % [w ev] = m_step(u, x, g)
     %
     % M-step: updates parameters w for q(theta | w) for a
     % Normal-Wishart prior
@@ -88,3 +88,6 @@ function w = m_step_nw(u, x, g)
         w.W = 1 ./ (1 ./ u.W + G .* xvar ...
                     + (u.beta .* G) ./ w.beta .* xvar0);
     end
+
+    ev.xmean = xmean;
+    ev.xvar = xvar;
