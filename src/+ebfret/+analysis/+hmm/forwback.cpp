@@ -4,28 +4,20 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	// copy inputs: px_z, A, pi
-	mxArray *px_z_in_m, *A_in_m, *pi_in_m; 
-	px_z_in_m = mxDuplicateArray(prhs[0]);
-	A_in_m = mxDuplicateArray(prhs[1]);
-	pi_in_m = mxDuplicateArray(prhs[2]);
+    // get pointers to inputs
+    double *px_z = mxGetPr(prhs[0]);
+    double *A = mxGetPr(prhs[1]);
+    double *pi = mxGetPr(prhs[2]);
 
-	// get pointers to inputs
-	double *px_z, *A, *pi;
-    px_z = mxGetPr(px_z_in_m);
-    A = mxGetPr(A_in_m);
-    pi = mxGetPr(pi_in_m);
+    // get sizes
+    mwSize T, K, D;
+    T = mxGetM(prhs[0]);
+    K = mxGetN(prhs[0]);
 
-	// dimensions: T, K
-	const mwSize *dims;
-	dims = mxGetDimensions(prhs[0]);
-	int T = (int) dims[0];
-	int K = (int) dims[1];
-
-	// local variables: a, b, c
-	double a[T*K];
-	double b[T*K];
-	double c[T]; 
+    // local variables: a, b, c
+    float *a = new float[T*K];
+    float *b = new float[T*K];
+    float *c = new float[T]; 
 
 	// initialize to zero
 	int i;
@@ -110,21 +102,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		}
 	}
 
-	// allocate outputs: g, xi, lnZ
-	int xi_dims[3] = {T-1, K, K}; 
-	mxArray *g_out_m, *xi_out_m, *lnZ_out_m; 
-	plhs[0] = mxCreateDoubleMatrix(T, K, mxREAL);
-	g_out_m = plhs[0];
-	plhs[1] = mxCreateNumericArray(3, xi_dims, mxDOUBLE_CLASS, mxREAL);
-	xi_out_m = plhs[1];
-	plhs[2] = mxCreateDoubleMatrix(1, 1, mxREAL);
-	lnZ_out_m = plhs[2];
-
-	// get pointers to outputs
-	double *g, *xi, *lnZ;
-    g = mxGetPr(g_out_m);
-    xi = mxGetPr(xi_out_m);
-    lnZ = mxGetPr(lnZ_out_m);
+    // allocate outputs: g, xi, lnZ
+    plhs[0] = mxCreateDoubleMatrix(T, K, mxREAL);
+    double *g = mxGetPr(plhs[0]);
+    int xi_dims[3] = {T-1, K, K}; 
+    plhs[1] = mxCreateNumericArray(3, xi_dims, mxDOUBLE_CLASS, mxREAL);
+    double *xi = mxGetPr(plhs[1]);
+    plhs[2] = mxCreateDoubleMatrix(1, 1, mxREAL);
+    double *lnZ = mxGetPr(plhs[2]);
 
 	// g(t,k) = a(t,k) * b(t,k)
 	for (i=0; i<T*K; i++)
