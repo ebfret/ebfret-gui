@@ -16,7 +16,6 @@ function run_vbayes(self, varargin)
     if isempty(args.series)
         args.series = 1:length(self.series);
     end
-    x = {self.series.signal};
     
     % loop over different analysis sets
     for a = args.analysis

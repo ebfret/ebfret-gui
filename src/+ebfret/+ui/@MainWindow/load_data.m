@@ -34,11 +34,11 @@ function load_data(self)
         %                 'donor', don, 'acceptor', acc);
         % don = don(~cellfun(@isempty, don));
         % acc = acc(~cellfun(@isempty, acc));
-%         for n = 1:length(data)
-%             data(n).fret = (data(n).acceptor+eps) ./ (data(n).donor + data(n).acceptor + eps);
-%             data(n).fret(data(n).fret>1.5) = 1.5; 
-%             data(n).fret(data(n).fret<-0.5) = -0.5; 
-%         end 
+        % for n = 1:length(data)
+        %     data(n).fret = (data(n).acceptor+eps) ./ (data(n).donor + data(n).acceptor + eps);
+        %     data(n).fret(data(n).fret>1.5) = 1.5; 
+        %     data(n).fret(data(n).fret<-0.5) = -0.5; 
+        % end 
         self.series = struct('time', {}, ...
                              'signal', {}, ...
                              'donor', {}, ...
