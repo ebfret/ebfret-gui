@@ -14,7 +14,7 @@ function remove_bleaching(self)
             end
         end
     end
-    self.reset_posterior(self.controls.min_states:self.controls.max_states);
+    self.reset_analysis(self.controls.min_states:self.controls.max_states);
     self.refresh('ensemble', 'series');
     self.set_control('clip', struct('max', self.series(self.controls.series.value).clip.max));
 end
