@@ -5,38 +5,26 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	// copy inputs: px_z, A, pi
-	mxArray *ln_px_z_in_m, *ln_A_in_m, *ln_pi_in_m; 
-	ln_px_z_in_m = mxDuplicateArray(prhs[0]);
-	ln_A_in_m = mxDuplicateArray(prhs[1]);
-	ln_pi_in_m = mxDuplicateArray(prhs[2]);
-
-	// get pointers to inputs
-	double *ln_px_z, *ln_A, *ln_pi;
-    ln_px_z = mxGetPr(ln_px_z_in_m);
-    ln_A = mxGetPr(ln_A_in_m);
-    ln_pi = mxGetPr(ln_pi_in_m);
+    // get pointers to inputs
+    double *ln_px_z = mxGetPr(prhs[0]);
+    double *ln_A = mxGetPr(prhs[1]);
+    double *ln_pi = mxGetPr(prhs[2]);
 
 	// dimensions: T, K
-	const mwSize *dims;
-	dims = mxGetDimensions(prhs[0]);
-	long T = (long) dims[0];
-	long K = (long) dims[1];
+    mwSize T, K;
+    T = mxGetM(prhs[0]);
+    K = mxGetN(prhs[0]);
 
 	// create output arrays
 	plhs[0] = mxCreateDoubleMatrix(T, 1, mxREAL);
-	// plhs[1] = mxCreateDoubleMatrix(T, K, mxREAL);
-	// plhs[2] = mxCreateDoubleMatrix(T, K, mxREAL);
 	double *z_hat = mxGetPr(plhs[0]);
-	// double *z_max = mxGetPr(plhs[1]);
-	// double *omega = mxGetPr(plhs[2]);
 
 	// z_max(t, k) is most probable state at t-1, given state k at t
-	double z_max[T*K];
+	double *z_max = new double[T*K];
 	// log likehood of states:
 	// omega(t, k) =  log(px_z(t,k)) + log(px_z(t-1, z_max(t,k))) 
 	//                + omega(t-1, z_max(t,k))
-	double omega[T*K];
+	double *omega = new double[T*K];
 
 	// Forward Sweep - Calculate
 	//
