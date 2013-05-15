@@ -73,11 +73,15 @@ function run_ebayes(self, varargin)
                 end
             end
 
+            % check if max iterations reached
+            if (it > args.max_iter)
+               break
+            end
+            
             % check convergence
             L(it) = sum(self.analysis(a).lowerbound);
             if (it > 1) ...
-               & (((L(it) - L(it-1)) < self.controls.run_precision * abs(L(it)))  ...
-                 | (it > args.max_iter))
+               && ((L(it) - L(it-1)) < self.controls.run_precision * abs(L(it)))  ...
                 break
             end
 
@@ -100,12 +104,11 @@ function run_ebayes(self, varargin)
             E = self.analysis(a).expect(find(~[self.series.exclude]));
             self.analysis(a).prior = ebfret.analysis.hmm.h_step(w, u, 'expect', E);
 
-            % % refresh plots
-            % self.refresh('ensemble');
-            % drawnow();
-
             % increment iteration counter
             it = it + 1;
         end
     end
+
+    self.set_control('run_analysis', 0);
+    self.refresh('ensemble', 'series');
 end
