@@ -44,6 +44,8 @@ function set_control(self, varargin)
                         'string', sprintf('%d', self.series(n).clip.min));
                     set(self.handles.clipMaxEdit, ...
                         'string', sprintf('%d', self.series(n).clip.max));
+                    set(self.handles.excludeCheck, ...
+                        'value', self.series(n).exclude);
                 end
             case 'ensemble'
                 self.handles.ensembleControl.set_prop(controls.ensemble);
@@ -101,6 +103,21 @@ function set_control(self, varargin)
                     % disable clipping control if we have no data
                     set(self.handles.minClipEdit, 'enable', 'off', 'string', '');
                     set(self.handles.maxClipEdit, 'enable', 'off', 'string', '');
+                end
+            case 'exclude'
+                if length(self.series) > 0
+                    set(self.handles.excludeCheck, ...
+                        'enable', 'on', ...
+                        'value', controls.exclude);
+                    n = self.controls.series.value;
+                    if (controls.exclude ~= self.series(n).exclude)
+                        self.series(n).exclude = controls.exclude;
+                        self.reset_posterior(self.controls.min_states:self.controls.max_states, n);
+                        self.refresh('ensemble', 'series');
+                    end
+                else
+                    % disable control if we have no data
+                    set(self.handles.excludeCheck, 'enable', 'off');
                 end
             case 'min_states'
                 set(self.handles.minStatesEdit, ...
