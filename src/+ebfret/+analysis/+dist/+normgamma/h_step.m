@@ -26,6 +26,8 @@ ip.addOptional('a0', 2, @isnumeric);
 ip.addParamValue('max_iter', 1000, @isscalar);       
 ip.addParamValue('threshold', 1e-6, @isscalar);       
 ip.addParamValue('eps', 1e-12, @isscalar);       
+ip.addParamValue('constraints', ...
+    struct('beta', [1e-3,inf], 'a', [1+1e-3, inf]), @isscalar);       
 ip.parse(varargin{:});
 args = ip.Results;
 
@@ -105,3 +107,17 @@ u_a = a;
 
 % b = a / E[l]
 u_b = a ./ E_l;
+
+% enforce constraints
+vars = fieldnames(args.constraints);
+u = struct('m', u_m, 'beta', u_beta, 'a', u_a, 'b', u_b);
+for v = 1:length(vars)
+    if isfield(u, vars{v})
+        msk = u.(vars{v}) < args.constraints.(vars{v})(1);
+        u.(vars{v})(msk) = args.constraints.(vars{v})(1);
+        msk = u.(vars{v}) > args.constraints.(vars{v})(2);
+        u.(vars{v})(msk) = args.constraints.(vars{v})(2);
+    end
+end
+
+[u_m, u_beta, u_a, u_b] = deal(u.m, u.beta, u.a, u.b);
