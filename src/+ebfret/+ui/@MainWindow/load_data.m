@@ -60,7 +60,6 @@ function load_data(self)
 
         self.reset_analysis(self.controls.min_states:self.controls.max_states);
         self.set_control('ensemble', struct('value', self.controls.min_states));
-        self.refresh('ensemble');
         self.set_control(...
             'series', struct(...
                         'min', 1, ...
@@ -68,4 +67,5 @@ function load_data(self)
                         'value', 1));
         self.set_control('run_analysis', false);
     end
+    self.refresh('ensemble', 'series');
 end
