@@ -51,8 +51,8 @@ function load_data(self)
             self.series(n).time = (1:length(self.series(n).donor))';
             self.series(n).signal = self.series(n).acceptor ...
                                 ./ (self.series(n).acceptor + self.series(n).donor);
-            self.series(n).signal(self.series(n).signal<-0.2) = -0.2;                                
-            self.series(n).signal(self.series(n).signal>1.2) = 1.2;                                
+            % self.series(n).signal(self.series(n).signal<-0.2) = -0.2;                                
+            % self.series(n).signal(self.series(n).signal>1.2) = 1.2;                                
             self.series(n).exclude = false;
             self.series(n).clip.min = 1;
             self.series(n).clip.max = length(self.series(n).time);
