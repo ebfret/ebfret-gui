@@ -78,7 +78,8 @@ function run_vbayes(self, varargin)
                 L_max = vb(1).L(end);
                 r_max = 1;
                 for r = 2:length(vb)
-                    if (vb(r).L(end) - L_max) > args.threshold * abs(L_max);
+                    if (vb(r).L(end) - L_max) > args.threshold * abs(L_max) ...
+                        || isnan(L_max)
                         r_max = r;
                         L_max = vb(r).L(end);
                     end
