@@ -15,8 +15,6 @@ function clip_outliers(self, x_lim, max_outliers)
         x = self.series(n).signal(self.series(n).clip.min:self.series(n).clip.max);
         if (sum(x <= x_lim(1)) + sum(x >= x_lim(2))) > max_outliers
             self.series(n).exclude = true;
-        else
-            (sum(x <= x_lim(1)) + sum(x >= x_lim(2)))
         end
     end
     self.reset_analysis(...
