@@ -39,25 +39,26 @@ function load_data(self)
         %     data(n).fret(data(n).fret>1.5) = 1.5; 
         %     data(n).fret(data(n).fret<-0.5) = -0.5; 
         % end 
-        self.series = struct('time', {}, ...
+        series = struct('time', {}, ...
                              'signal', {}, ...
                              'donor', {}, ...
                              'acceptor', {}, ...
                              'clip', {}, ...
                              'exclude', {});
         for n = 1:length(don)
-            self.series(n).donor = don{n}(:);
-            self.series(n).acceptor = acc{n}(:);
-            self.series(n).time = (1:length(self.series(n).donor))';
-            self.series(n).signal = self.series(n).acceptor ...
-                                ./ (self.series(n).acceptor + self.series(n).donor);
+            series(n).donor = don{n}(:);
+            series(n).acceptor = acc{n}(:);
+            series(n).time = (1:length(series(n).donor))';
+            series(n).signal = series(n).acceptor ...
+                                ./ (series(n).acceptor + series(n).donor);
             % self.series(n).signal(self.series(n).signal<-0.2) = -0.2;                                
             % self.series(n).signal(self.series(n).signal>1.2) = 1.2;                                
-            self.series(n).exclude = false;
-            self.series(n).clip.min = 1;
-            self.series(n).clip.max = length(self.series(n).time);
+            series(n).exclude = false;
+            series(n).clip.min = 1;
+            series(n).clip.max = length(series(n).time);
         end
-
+        self.series = series;
+        
         self.reset_analysis(self.controls.min_states:self.controls.max_states);
         self.set_control('ensemble', struct('value', self.controls.min_states));
         self.set_control(...
