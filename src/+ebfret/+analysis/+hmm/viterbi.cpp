@@ -94,4 +94,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     	z_hat[t] += 1;
     }
 	return;
+
+    // free up memory
+    free(z_max);
+    free(omega);
 }
