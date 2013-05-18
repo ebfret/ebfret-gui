@@ -139,5 +139,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		lnZ[0] += log(c[t]);
 	}
 
+    // delete memory allocated for a, b and c
+    free(a);
+    free(b);
+    free(c);
+
+
 	return;
 }
