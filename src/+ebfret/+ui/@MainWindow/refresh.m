@@ -2,6 +2,7 @@ function refresh(self, panel, index)
     % refresh(self, panel, index)
     % 
     % Replots axes in specified plot panel (one of {'series', 'ensemble'})
+    import ebfret.analysis.*
     switch panel
         case 'ensemble' 
             controls = get(self, 'controls');
@@ -27,22 +28,33 @@ function refresh(self, panel, index)
                     self.controls.colors.viterbi = [0.66, 0.33, 0.33];
                 end
                 
-                % create observation histogram
+                % get observations
                 x = self.get_signal();
-                x = cat(1,x{:});
-                idx = find(isfinite(x));
-                x = x(idx);
 
-                pargs = struct();
-                try
-                    pargs.weights = cat(1, analysis(a).expect.z);
-                    pargs.weights = pargs.weights(idx,:);
-                    pargs.color = self.controls.colors.state;
-                catch err
-                    pargs.color = self.controls.colors.obs;
+                % get component weights
+                for n = 1:length(x)
+                    if ~isempty(x{n})
+                        if ~isempty(analysis(a).viterbi(n).state)
+                            % assign weight according to viterbi path
+                            weights{n} = 1.0 *bsxfun(@eq, analysis(a).viterbi(n).state(:), 1:analysis(a).dim.states);
+                        else
+                            % assign uninformative weight
+                            weights{n} = ones(length(x{n}), analysis(a).dim.states) ./ analysis(a).dim.states;
+                        end
+                    end
                 end
+
+                % concatenate and filter observations and weights
+                x = cat(1, x{:});
+                weights = cat(1, weights{:});
+                ind = find(isfinite(x));
+                x = x(ind);
+                weights = weights(ind,:);
+
+                % plot histogram
                 plots.ensemble.obs = ...
-                    ebfret.plot.state_obs(x, pargs, ...
+                    ebfret.plot.state_obs(x, 'weights', weights, ...
+                                          'color', self.controls.colors.state, ...
                                           'linestyle', '-');
                 try
                     % create prior plots
@@ -135,33 +147,21 @@ function refresh(self, panel, index)
                     set(eph.axes.obs, ...
                         'XLim', x_lim, 'YLim', y_lim, ...
                         'YTick', linspace(y_lim(1), y_lim(2), 5));
-                except
+                catch
                     % copy limits from histogram plot
-                    x_lim = get(handles.ensemblePanel.obs, 'xlim');
+                    x_lim = get(eph.axes.obs, 'xlim');
                     set(sph.axes.time, 'YLim', x_lim);
                     set(sph.axes.obs, 'XLim', x_lim);
                 end
                    
-                % % set axis limits for prior / posterior plots
-                % if ~isempty(analysis(a).posterior)
-                %     dist = 'posterior';
-                % elseif ~isempty(analysis(a).prior)
-                %     dist = 'prior';            
-                % else
-                %     dist = '';
-                % end
+                % tick label formatting
+                for ph = [sph, eph]
+                    for ax = struct2array(ph.axes)
+                        xtick = get(ax, 'xtick');
+                        set(ax, 'xticklabel', ebfret.analysis.num_to_str(xtick));
+                    end
+                end
 
-                % axes = {'mean', 'noise', 'dwell'};
-                % thresholds = [0.05, 0.2, 0.001];
-                % for ax = 1:length(axes)
-                %     dist = {'prior', 'posterior'};
-                %     for d = 1:length(dist)
-                %         try 
-                %         catch err
-                %         end
-                %     end
-                % end
-                
                 % update ensemble plots
                 handles = get(self, 'handles');
                 set_plots(handles.ensemblePanel, ...
@@ -169,7 +169,10 @@ function refresh(self, panel, index)
                 
                 % get occupancy dependent scaling
                 if self.controls.scale_plots
-                    scale = mean(cat(1, analysis(a).expect.z),1);
+                    scale = mean(cat(2, analysis(a).expect.z),2);
+                    if isempty(scale)
+                        scale = 1;
+                    end
                 else
                     scale = 1;
                 end
@@ -255,31 +258,21 @@ function refresh(self, panel, index)
                         self.controls.colors.state = ...
                             ebfret.plot.line_colors(analysis.dim.states);
 
-                        pargs = struct();
-                        try
-                            pargs.weights = analysis.expect(n).z;
+                        if ~isempty(analysis.viterbi(n).state)
+                            pargs.weights = 1.0 * bsxfun(@eq, analysis.viterbi(n).state(:), 1:analysis.dim.states);
                             pargs.color = self.controls.colors.state;
-                        catch err
+                        else
                             pargs.color = self.controls.colors.obs; 
                         end
                         plots.series.obs = ebfret.plot.state_obs(...
                             x, pargs, ...
                             'xdata', x_bins, ...
                             'linestyle', '-');
-                        try
-                            pargs.state = analysis.viterbi(n).state;
-                            pargs.mean = analysis.viterbi(n).mean;
+
+                        if isfield(pargs, 'weights')
                             pargs.color = {self.controls.colors.obs, ...
                                            self.controls.colors.viterbi, ...
                                            self.controls.colors.state{:}};
-                        catch err
-                            if isfield(pargs, 'weights')
-                                pargs.color = {self.controls.colors.obs, ...
-                                               self.controls.colors.viterbi, ...
-                                               self.controls.colors.state{:}};
-                            else
-                                pargs.color = {self.controls.colors.obs};
-                            end
                         end
                         plots.series.time = ebfret.plot.time_series(...
                             x(:), 'xdata', t(:), pargs, ...
@@ -288,7 +281,7 @@ function refresh(self, panel, index)
                         % update posterior plots
                         try
                             if self.controls.scale_plots
-                                scale = mean(analysis.expect(n).z, 1);
+                                scale = analysis.expect(n).z;
                             else
                                 scale = 1;
                             end
