@@ -31,8 +31,7 @@ function str = num_to_str(num, max_length)
         end
     end
     % try floating point notation first
-    form = ('\%.%df', max_length);
-    str = arrayfun(@(num) strip_zero(sprintf(form, num)), num, 'UniformOutput', false);
+    str = arrayfun(@(num) strip_zero(sprintf('%f', num)), num, 'UniformOutput', false);
     if any(cellfun(@length, {str{:}}) > max_length)
         % return scientific notation if float notation is too long
         str = arrayfun(@(num) format_sci(num), num, 'UniformOutput', false);
