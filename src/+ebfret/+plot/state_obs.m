@@ -14,8 +14,6 @@ function lines = state_obs(x, varargin)
     %   Histogram bin positions, or number of bins
     % 'weights' : [T K]
     %   Mixture weights for each observation
-    % 'state' : [T 1]
-    %   Mixture component index for each observation
     % varargin : {'property', {values}}
     %   Any additional line properties.  
     %
@@ -36,17 +34,11 @@ function lines = state_obs(x, varargin)
     ip.StructExpand = true;
     ip.KeepUnmatched = true;
     ip.addParamValue('weights', [], @isnumeric);       
-    ip.addParamValue('state', [], @isvector);       
     ip.parse(varargin{:});
     args = ip.Results;
 
-    % get assignments
-    if isempty(args.state)
-        args.state = ones(size(x(:)));
-    end
     if isempty(args.weights)
-        k_values = unique(args.state(:))';
-        args.weights = 1.0 * bsxfun(@eq, args.state(:), k_values);
+        args.weights = ones(length(x), 1);
     end
 
     % get number of states 
