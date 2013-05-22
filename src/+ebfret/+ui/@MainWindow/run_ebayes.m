@@ -65,12 +65,12 @@ function run_ebayes(self, varargin)
                     'restarts', num_restarts, ...
                     'threshold', self.controls.run_precision, ...
                     'max_iter', args.max_iter);
-                % do empirical bayes updates for prior
-                if (n - eb_last) > eb_interval
-                    w = self.analysis(a).posterior(find(~[self.series.exclude]));
-                    self.analysis(a).prior = ebfret.analysis.hmm.h_step(w);
-                    eb_last = n;
-                end
+                % % do empirical bayes updates for prior
+                % if (n - eb_last) > eb_interval
+                %     w = self.analysis(a).posterior(find(~[self.series.exclude]));
+                %     self.analysis(a).prior = ebfret.analysis.hmm.h_step(w);
+                %     eb_last = n;
+                % end
             end
 
             % check if max iterations reached
@@ -103,6 +103,10 @@ function run_ebayes(self, varargin)
             w = self.analysis(a).posterior(find(~[self.series.exclude]));
             E = self.analysis(a).expect(find(~[self.series.exclude]));
             self.analysis(a).prior = ebfret.analysis.hmm.h_step(w, u, 'expect', E);
+
+            % u = self.analysis(a).prior;
+            % w = self.analysis(a).posterior(find(~[self.series.exclude]));
+            % self.analysis(a).prior = ebfret.analysis.hmm.h_step(w);
 
             % increment iteration counter
             it = it + 1;
