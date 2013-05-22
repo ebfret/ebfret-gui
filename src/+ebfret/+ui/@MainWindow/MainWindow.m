@@ -12,7 +12,7 @@ classdef MainWindow < hgsetget
         plots
     end
     methods
-        function self = MainWindow(series, analysis, varargin)
+        function self = MainWindow(filename, filetype)
             self.handles.mainWindow ...
                 = figure('name', 'ebFRET', ...
                          'units','pixels', ...
@@ -367,6 +367,14 @@ classdef MainWindow < hgsetget
             self.controls.redraw.series.interval = 1;
             self.controls.redraw.ensemble.last = tic();
             self.controls.redraw.series.last = tic();
+
+            % load file if specified
+            if nargin > 0
+                if nargin < 2
+                    filetype = 1;
+                end
+                self.load_data(filename, filetype);
+            end
         end
 %         refresh_series(self, n);
 %         refresh_ensemble(self, a);
