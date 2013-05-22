@@ -1,4 +1,4 @@
-function [u, kl] = hstep(w, varargin)
+function [u, w] = hstep(w, varargin)
 % u = hstep(w, varargin)
 %
 % Hyper parameter updates for empirical Bayes inference (EB)
@@ -50,6 +50,10 @@ function [u, kl] = hstep(w, varargin)
 %   u : struct  
 %       Hyperparameters for the prior distribution p(theta | u)
 %       (same fields as w)
+%
+%   w : struct  
+%       Updated posterior parameters relative to new prior 
+%       (assuming identical sufficient statistics)
 
 ip = inputParser();
 ip.StructExpand = true;
@@ -59,9 +63,6 @@ ip.addParamValue('max_iter', 100, @isscalar);
 ip.addParamValue('threshold', 1e-5, @isscalar);       
 ip.parse(varargin{:});
 args = ip.Results;
-
-args.max_iter = 100;
-args.threshold = 1e-4;
 
 % cast posterior in array form
 w_mu = cat(2, w.mu);
@@ -100,11 +101,9 @@ while true
 
     % get sufficient statistics
     if (it == 0) && ~isempty(args.expect)
+        E_z = cat(2, args.expect.z);
+        E_z1 = cat(2, args.expect.z1);
         E_zz = cat(3, args.expect.zz);
-        E_z1 = arrayfun(@(e) e.z(1,:)', args.expect, 'UniformOutput', false);
-        E_z1 = cat(2, E_z1{:});
-        E_z = arrayfun(@(e) sum(e.z,1)', args.expect, 'UniformOutput', false);
-        E_z = cat(2, E_z{:});
         E_x = cat(2, args.expect.x);
         V_x = cat(2, args.expect.xx) - E_x.^2;
         % % E_zz(k,l) = w.A(k,l) - u.A(k,l)
@@ -145,3 +144,14 @@ end
 
 u = rmfield(u, {'a', 'b'});
 u = orderfields(u, fieldnames(w));
+
+w_nu = 2 * w_a;
+w_W = 0.5 ./ w_b;
+[K N] = size(w_mu);
+w = struct('mu', reshape(mat2cell(w_mu, K, ones(N,1)), [N 1]), ...
+           'beta', reshape(mat2cell(w_beta, K, ones(N,1)), [N 1]), ...
+           'nu', reshape(mat2cell(w_nu, K, ones(N,1)), [N 1]), ...
+           'W', reshape(mat2cell(w_W, K, ones(N,1)), [N 1]), ...
+           'A', reshape(mat2cell(w_A, K, K, ones(N,1)), [N 1]), ...
+           'pi', reshape(mat2cell(w_pi, K, ones(N,1)), [N 1]));
+w = orderfields(w, fieldnames(u));
