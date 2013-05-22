@@ -88,11 +88,18 @@ function run_vbayes(self, varargin)
                 % keep best result
                 self.analysis(a).lowerbound(n) = vb(r_max).L(end);
                 self.analysis(a).posterior(n) = vb(r_max).w;
-                self.analysis(a).expect(n).z = vb(r_max).E.gamma;
-                self.analysis(a).expect(n).zz = squeeze(sum(vb(r_max).E.xi, 1));
-                self.analysis(a).expect(n).x = vb(r_max).E.xmean;
-                self.analysis(a).expect(n).xx = vb(r_max).E.xvar + vb(r_max).E.xmean.^2;
                 self.analysis(a).restart(n) = r_max + args.restarts - length(w0);
+
+                % remap expectated statistics
+                self.analysis(a).expect(n).z = sum(vb(r_max).E.gamma(2:end,:),1)';
+                self.analysis(a).expect(n).z1 = vb(r_max).E.gamma(1,:)';
+                self.analysis(a).expect(n).zz = squeeze(sum(vb(r_max).E.xi, 1));
+                self.analysis(a).expect(n).x = vb(r_max).E.xmean(:);
+                self.analysis(a).expect(n).xx = vb(r_max).E.xvar + vb(r_max).E.xmean.^2;
+
+                % calculate viterbi path
+                [self.analysis(a).viterbi(n).state, self.analysis(a).viterbi(n).mean] = ...
+                    ebfret.analysis.hmm.viterbi_vb(vb(r_max).w, x);
 
                 % update plots if redraw_interval exceeded
                 if toc(self.controls.redraw.series.last) > self.controls.redraw.series.interval
@@ -112,10 +119,6 @@ function run_vbayes(self, varargin)
                 end
             end
             
-            % % debug:
-            % L = arrayfun(@(vb) vb.L(end), vb);
-            % fprintf('%s\n', sprintf('%.0e    ', (L - L_max) / abs(L_max)));
-
         end
         % self.refresh('ensemble');
         % drawnow();
