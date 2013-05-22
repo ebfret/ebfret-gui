@@ -1,4 +1,4 @@
-function [donor acceptor] = load_raw(data_files, varargin)
+function [donor acceptor labels] = load_raw(data_files, varargin)
 % Loads traces from a number of data files into a single dataset.
 %
 % Data must be formatted as a matrix with T rows (time points) and
@@ -92,10 +92,10 @@ for d = 1:length(data_files)
 
         % strip labels if necessary
         if args.has_labels
-            labels{n} = rw(1, 1);
+            labels(n,1) = rw(1, 1);
             rw = rw(2:end, :);
         else
-            labels{n} = n;
+            labels(n,1) = n;
         end
 
         % strip first point (often bad data)
