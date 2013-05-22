@@ -44,7 +44,10 @@ function remove_bleaching(self, method, thresholds)
                                 [find(self.series(n).donor < thresholds.don, ...
                                     1, 'first'), inf]));
                     end
-                    clip_max
+                    if ~isnan(thresholds.pad)
+                        clip_max = ...
+                            clip_max - thresholds.pad;
+                    end
                     if clip_max > self.series(n).clip.min
                         self.series(n).clip.max = clip_max;
                         self.series(n).exclude = false;
