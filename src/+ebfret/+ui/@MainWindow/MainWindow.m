@@ -12,7 +12,7 @@ classdef MainWindow < hgsetget
         plots
     end
     methods
-        function self = MainWindow(filename, filetype)
+        function self = MainWindow(filenames, filetype)
             self.handles.mainWindow ...
                 = figure('name', 'ebFRET', ...
                          'units','pixels', ...
@@ -373,7 +373,7 @@ classdef MainWindow < hgsetget
                 if nargin < 2
                     filetype = 1;
                 end
-                self.load_data(filename, filetype);
+                self.load_data(filenames, filetype);
             end
         end
 %         refresh_series(self, n);
