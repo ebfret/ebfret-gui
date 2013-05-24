@@ -31,31 +31,29 @@ function refresh(self, panel, index)
                 % get observations
                 x = self.get_signal();
 
-                % get component weights
+                % get viterbi states
                 for n = 1:length(x)
-                    if ~isempty(x{n})
-                        if ~isempty(analysis(a).viterbi(n).state)
-                            % assign weight according to viterbi path
-                            weights{n} = 1.0 *bsxfun(@eq, analysis(a).viterbi(n).state(:), 1:analysis(a).dim.states);
-                        else
-                            % assign uninformative weight
-                            weights{n} = ones(length(x{n}), analysis(a).dim.states) ./ analysis(a).dim.states;
-                        end
+                    if ~self.series(n).exclude && ~isempty(analysis(a).viterbi(n).state)
+                        state{n} = analysis(a).viterbi(n).state;
+                    else
+                        state{n} = zeros(size(x{n}));
                     end
                 end
 
                 % concatenate and filter observations and weights
                 x = cat(1, x{:});
-                weights = cat(1, weights{:});
+                state = cat(1, state{:});
                 ind = find(isfinite(x));
                 x = x(ind);
-                weights = weights(ind,:);
+                state = state(ind,:);
 
                 % plot histogram
                 plots.ensemble.obs = ...
-                    ebfret.plot.state_obs(x, 'weights', weights, ...
-                                          'color', self.controls.colors.state, ...
-                                          'linestyle', '-');
+                    ebfret.plot.state_obs(...
+                        x, 'state', state, ...
+                        'num_states', analysis(a).dim.states, ...
+                        'color', self.controls.colors.state, ...
+                        'linestyle', '-');
                 try
                     % create prior plots
                     u_m = analysis(a).prior.mu;
@@ -259,7 +257,8 @@ function refresh(self, panel, index)
                             ebfret.plot.line_colors(analysis.dim.states);
 
                         if ~isempty(analysis.viterbi(n).state)
-                            pargs.weights = 1.0 * bsxfun(@eq, analysis.viterbi(n).state(:), 1:analysis.dim.states);
+                            pargs.state = analysis.viterbi(n).state;
+                            pargs.num_states = analysis.dim.states;
                             pargs.color = self.controls.colors.state;
                         else
                             pargs.color = self.controls.colors.obs; 
@@ -268,8 +267,7 @@ function refresh(self, panel, index)
                             x, pargs, ...
                             'xdata', x_bins, ...
                             'linestyle', '-');
-
-                        if isfield(pargs, 'weights')
+                        if ~isempty(analysis.viterbi(n).state)
                             pargs.color = {self.controls.colors.obs, ...
                                            self.controls.colors.viterbi, ...
                                            self.controls.colors.state{:}};
