@@ -144,10 +144,12 @@ classdef IndexControl < hgsetget
             if isfield(properties, 'min')
                 self.min  = round(properties.min);
                 set(self.handles.slider, 'min', self.min-eps);
+                self.set_prop('value', max(self.value, self.min));
             end
             if isfield(properties, 'max')
                 self.max  = round(properties.max);
                 set(self.handles.slider, 'max', self.max+eps);
+                self.set_prop('value', min(self.value, self.max));
             end
             if isfield(properties, 'value')
                 self.value = max(min(round(properties.value), self.max), self.min);
