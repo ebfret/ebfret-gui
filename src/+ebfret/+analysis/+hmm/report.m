@@ -72,7 +72,8 @@ function [rep par] = report(signal, prior, expect, varargin)
         if ~isempty(args.labels)
             rep(s).Parameters.Label = {args.labels{s}};
             for k = 2:length(u.mu)
-            rep(s).Parameters.Label{k} = '';
+                rep(s).Parameters.Label{k} = '';
+            end
         end
         rep(s).Parameters.State = (1:length(u.mu))';
         [rep(s).Parameters.Center.Mean rep(s).Parameters.Precision.Mean] = ...
