@@ -57,21 +57,22 @@ function run_ebayes(self, varargin)
 
             eb_interval = round(0.1 * length(self.series));
             eb_last = 0;
-            for n = 1:length(self.series)
-                % do variational bayes updates for posterior
-                self.run_vbayes(...
-                    'analysis', a, ...
-                    'series', n, ...
-                    'restarts', num_restarts, ...
-                    'threshold', self.controls.run_precision, ...
-                    'max_iter', args.max_iter);
-                % % do empirical bayes updates for prior
-                % if (n - eb_last) > eb_interval
-                %     w = self.analysis(a).posterior(find(~[self.series.exclude]));
-                %     self.analysis(a).prior = ebfret.analysis.hmm.h_step(w);
-                %     eb_last = n;
-                % end
-            end
+            % do variational bayes updates for posterior
+            self.run_vbayes(...
+                'analysis', a, ...
+                'series', 1:length(self.series), ...
+                'restarts', num_restarts, ...
+                'threshold', self.controls.run_precision, ...
+                'max_iter', args.max_iter);
+
+            % for n = 1:length(self.series)
+            %     % % do empirical bayes updates for prior
+            %     % if (n - eb_last) > eb_interval
+            %     %     w = self.analysis(a).posterior(find(~[self.series.exclude]));
+            %     %     self.analysis(a).prior = ebfret.analysis.hmm.h_step(w);
+            %     %     eb_last = n;
+            %     % end
+            % end
 
             % check if max iterations reached
             if (it > args.max_iter)
