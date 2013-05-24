@@ -11,6 +11,8 @@ function x = get_signal(self, series_index)
             % x{n}(x{n} == inf) = 1 ./ eps;
             % x{n}(x{n} == -inf) = -1 ./ eps;
             % x{n}(isnan(x{n})) = 0;
+        else
+            x{n} = [];
         end
     end
     if isscalar(series_index) 
