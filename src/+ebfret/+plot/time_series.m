@@ -16,6 +16,8 @@ function lines = time_series(x, varargin)
     %   Mixture weights for each observation
     % 'state' : [T 1]
     %   Mixture component index for each observation
+    % 'num_states' : int
+    %   Total number of states (useful when weights are not supplied)
     % 'mean' : [T 1]
     %   State mean associated with each observation
     % varargin : {'property', {values}}
@@ -40,20 +42,24 @@ function lines = time_series(x, varargin)
     ip.addParamValue('weights', [], @isnumeric);       
     ip.addParamValue('state', [], @isnumeric);       
     ip.addParamValue('mean', [], @isnumeric);       
+    ip.addParamValue('num_states', [], @isnumeric);       
     ip.parse(varargin{:});
     args = ip.Results;
 
     % get number of states 
-    if ~isempty(args.weights)
-        K = size(args.weights, 2);
-    elseif ~isempty(args.state)
-        K = max(args.state);
-    elseif ~isempty(args.mean)
-        K = length(unique(args.mean));
+    if isempty(args.num_states)
+        if ~isempty(args.weights)
+            K = size(args.weights, 2);
+        elseif ~isempty(args.state)
+            K = max(args.state);
+        elseif ~isempty(args.mean)
+            K = length(unique(args.mean));
+        else
+            K = 0;
+        end
     else
-        K = 0;
+        K = args.num_states;
     end
-
     % get state index from weights if not supplied
     if isempty(args.state) & ~isempty(args.weights)
         [void args.state] = max(args.weights, [], 2);

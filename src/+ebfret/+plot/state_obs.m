@@ -14,6 +14,8 @@ function lines = state_obs(x, varargin)
     %   Histogram bin positions, or number of bins
     % 'weights' : [T K]
     %   Mixture weights for each observation
+    % 'state' : [T 1]
+    %   State assignment for each observation
     % varargin : {'property', {values}}
     %   Any additional line properties.  
     %
@@ -34,15 +36,26 @@ function lines = state_obs(x, varargin)
     ip.StructExpand = true;
     ip.KeepUnmatched = true;
     ip.addParamValue('weights', [], @isnumeric);       
+    ip.addParamValue('state', [], @isnumeric);       
+    ip.addParamValue('num_states', [], @isnumeric);       
     ip.parse(varargin{:});
     args = ip.Results;
 
-    if isempty(args.weights)
-        args.weights = ones(length(x), 1);
+    % initialize states if necessary
+    if isempty(args.weights) & isempty(args.state)
+        args.state = ones(length(x), 1);
+        args.num_states = 1;
     end
+    if isempty(args.num_states) 
+        if ~isempty(args.weights)
+            args.num_states = size(args.weights, 2);
+        else
+            args.num_states = max(args.state);
+        end
+    end 
 
-    % get number of states 
-    K = size(args.weights, 2);
+    % get number of states
+    K = args.num_states;
 
     % get line properties from unmatched params
     props = cat(2, fieldnames(ip.Unmatched), struct2cell(ip.Unmatched))';
@@ -51,20 +64,27 @@ function lines = state_obs(x, varargin)
         lines(1:K) = lines;
     end
 
-    % set x-axis values if unspecified
-    for k = 1:K
-        if isfield(lines, 'xdata')
-            [lines(k).ydata lines(k).xdata] = ...
-                ebfret.plot.whist(x, lines(k).xdata, ...
-                    'weights', args.weights(:,k));
-        else
-            [lines(k).ydata lines(k).xdata]  = ...
-                ebfret.plot.whist(x, 'weights', args.weights(:,k));
-        end
+    pargs.num_states = args.num_states;
+    if ~isempty(args.weights)
+        pargs.weights = args.weights;
+    else
+        pargs.state = args.state;
     end
+    if isfield(lines, 'xdata')
+        [ydata xdata] = ...
+            ebfret.plot.whist(x, lines(1).xdata, pargs);
+    else
+        [ydata xdata] = ebfret.plot.whist(x, pargs);
+    end
+    for k = 1:K
+        lines(k).xdata = xdata(:);
+        lines(k).ydata = ydata(:,k);
+    end
+
     % normalize 
     Y = sum(sum(cat(2,lines.ydata), 1), 2);
     for k = 1:K
         dx = mean(lines(k).xdata(2:end)-lines(k).xdata(1:end-1));
         lines(k).ydata = lines(k).ydata ./ (dx .* Y);
     end
+

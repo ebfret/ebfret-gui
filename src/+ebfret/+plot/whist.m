@@ -28,6 +28,7 @@ function [counts, bins] = whist(x, varargin)
     ip.addOptional('bins', [], @isnumeric);       
     ip.addParamValue('weights', [], @isnumeric);       
     ip.addParamValue('state', [], @isvector);       
+    ip.addParamValue('num_states', [], @isscalar);       
     ip.parse(varargin{:});
     args = ip.Results;
     % get bins
@@ -39,17 +40,22 @@ function [counts, bins] = whist(x, varargin)
     else
         bins = args.bins;
     end
-    bins = bins(:);
-    % get assignments
-    if isempty(args.state)
-        args.state = ones(size(x(:)));
-    end
-    if isempty(args.weights)
-        k_values = unique(args.state(:))';
-        args.weights = 1.0 * bsxfun(@eq, args.state(:), k_values);
-    end
-    % get bin index for each observation
-    [void, x_bin] = min(abs(bsxfun(@minus, x(:), bins(:)')), [], 2);
-    for b = 1:length(bins)
-        counts(b, :) = sum(args.weights(x_bin==b,:), 1);
+    if ~isempty(args.weights)
+        % get bin index for each observation
+        [void, x_bin] = min(abs(bsxfun(@minus, x(:), bins(:)')), [], 2);
+        for b = 1:length(bins)
+            counts(b, :) = sum(args.weights(x_bin==b,:), 1);
+        end
+    else 
+        if isempty(args.state)
+            args.state = ones(size(x));
+        end
+        if isempty(args.num_states)
+            args.num_states = max(args.state);
+        end
+        counts = zeros(length(bins), args.num_states);
+        for k = 1:args.num_states
+            counts(:, k) = hist(x(args.state==k), bins)';
+        end
+        counts = bsxfun(@plus, counts, hist(x(args.state==0), bins)');
     end
