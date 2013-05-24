@@ -11,45 +11,47 @@ function remove_bleaching(self, method, thresholds)
                         id = ebfret.data.fret.photobleach_index(self.series(n).donor);
                         ia = ebfret.data.fret.photobleach_index(self.series(n).acceptor);
 
-                        % sanity check: donor bleaching should result in acceptor bleaching
-                        % but we'll allow a few time points tolerance
-                        tol = 5;
-                        if (ia < (id + tol));
-                            self.series(n).clip.max = min(ia, id);
-                        else
-                            self.series(n).exclude = true;
-                        end
+                        % % sanity check: donor bleaching should result in acceptor bleaching
+                        % % but we'll allow a few time points tolerance
+                        % tol = 5;
+                        % if (ia < (id + tol));
+                        %     self.series(n).clip.max = min(ia, id);
+                        % else
+                        %     self.series(n).exclude = true;
+                        % end
                     end
                 end
             case 2 
                 % remove photobleaching using manual thresholds
                 for n = 1:length(self.series)
-                    clip_max = length(self.series(n).signal);
-                    
+                    clip_max = self.series(n).clip.max - self.series(n).clip.min;
                     if ~isnan(thresholds.fret)
+                        signal = self.series(n).signal(self.series(n).clip.min:end);
                         clip_max = ...
                             min(min(clip_max, ...
-                                [find(self.series(n).signal < thresholds.fret, ...
+                                [find(signal < thresholds.fret, ...
                                     1, 'first'), inf]));
                     end
                     if ~isnan(thresholds.acc)
+                        acceptor = self.series(n).acceptor(self.series(n).clip.min:end);
                         clip_max = ...
                             min(min(clip_max, ...
-                                [find(self.series(n).acceptor < thresholds.acc, ...
+                                [find(acceptor < thresholds.acc, ...
                                     1, 'first'), inf]));
                     end
                     if ~isnan(thresholds.don)
+                        donor = self.series(n).donor(self.series(n).clip.min:end);
                         clip_max = ...
                             min(min(clip_max, ...
-                                [find(self.series(n).donor < thresholds.don, ...
+                                [find(donor < thresholds.don, ...
                                     1, 'first'), inf]));
                     end
                     if ~isnan(thresholds.pad)
                         clip_max = ...
                             clip_max - thresholds.pad;
                     end
-                    if clip_max > self.series(n).clip.min
-                        self.series(n).clip.max = clip_max;
+                    if clip_max > 0
+                        self.series(n).clip.max = clip_max + self.series(n).clip.min;
                         self.series(n).exclude = false;
                     else
                         self.series(n).exclude = true;
