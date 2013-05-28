@@ -50,7 +50,6 @@ function load_data(self, files, ftype)
             self.set_control(...
                 'ensemble', session.controls.ensemble, ...
                 'series', session.controls.series);
-            self.set_control('run_analysis', false);
             self.set_control(rmfield(session.controls, ...
                 {'ensemble', 'series', 'run_analysis'}));
         case 2
@@ -124,5 +123,6 @@ function load_data(self, files, ftype)
             self.set_control('ensemble', struct('value', self.controls.min_states));
         end
     end
+    self.set_control('run_analysis', false);
     self.refresh('ensemble', 'series');
 end
