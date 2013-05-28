@@ -53,7 +53,7 @@ for km = 1:max(args.mapping)
             l = find(args.mapping == lm);
             if ~isempty(l)
                 E_zz(km, lm, :) = ...
-                    arrayfun(@(e) sum(sum(e.zz(km, lm))), expect(ns)); 
+                    arrayfun(@(e) sum(sum(e.zz(k, l))), expect(ns)); 
             end
         end
     end
