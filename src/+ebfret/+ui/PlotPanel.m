@@ -24,28 +24,53 @@ classdef PlotPanel < hgsetget
                                 {'inches', 'centimeters', 'points', ...
                                  'normalized', 'pixels'})));       
             ip.addParamValue('axes', {});       
+            ip.addParamValue('properties', {});       
             ip.parse(varargin{:});
             args = ip.Results;
 
-            % create: panel, axes, properties struct
+            % create panel
             handles.panel ...
                 = uipanel(args.parent, ...
                           'title', args.title, ...
                           'position', args.position);
+
+            % create axes
+            if iscell(args.properties)
+                properties = struct(args.properties{:});
+            else
+                properties = args.properties;
+            end
             if iscell(args.axes)
                 args.axes = struct(args.axes{:});
             end
             fields = fieldnames(args.axes);
+            if isscalar(properties)
+                properties(1:length(fields)) = properties;
+            end
             for f = 1:length(fields)
                 fld = fields{f};
-                handles.axes.(fld) = ...
+                self.handles.axes.(fld) = ...
                     axes('parent', handles.panel, ...
                          'outerposition', args.axes.(fld));
+                % set axes properties
+                lprops = {'xlabel', 'ylabel', 'zlabel', 'title'};
+                props = fieldnames(properties);
+                for p = 1:length(props)
+                    if any(strcmpi(props{p}, lprops))
+                        t = get(self.handles.axes.(fld), props{p});
+                        set(t, 'string', properties(f).(props{p}));
+                        fprops = intersect(props, {'fontangle', 'fontname', 'fontunits', 'fontsize', 'fontweight'});
+                        for q = 1:length(fprops)
+                            set(t, fprops{q}, properties(f).(fprops{q}));
+                        end 
+                    else
+                        set(self.handles.axes.(fld), props{p}, properties(f).(props{p}));
+                    end
+                end            
             end
-            set(self, 'handles', handles);
-
+            
             % initialize (empty) plot data
-            clear_plots(self, fieldnames(handles.axes));
+            clear_plots(self, fieldnames(self.handles.axes));
         end
         % updates plot data
         function set_plots(self, varargin)
