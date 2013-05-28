@@ -52,9 +52,11 @@ function run_vbayes(self, varargin)
             if ~iscell(x)
                 % ok this is why you don't return a variable type
                 % (but code may rely upon this elsewhere)
-                x = {x}
-                x{ns} = x{1};
-                x{1} = [];
+                x = {x};
+                if ns > 1
+                    x{ns} = x{1};
+                    x{1} = [];
+                end
             end
             [w(ns)] = self.analysis(a).posterior(ns);
             % output variables for parfor loop
