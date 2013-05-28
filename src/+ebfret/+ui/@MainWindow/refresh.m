@@ -152,14 +152,6 @@ function refresh(self, panel, index)
                     set(sph.axes.obs, 'XLim', x_lim);
                 end
                    
-                % tick label formatting
-                for ph = [sph, eph]
-                    for ax = struct2array(ph.axes)
-                        xtick = get(ax, 'xtick');
-                        set(ax, 'xticklabel', ebfret.analysis.num_to_str(xtick));
-                    end
-                end
-
                 % update ensemble plots
                 handles = get(self, 'handles');
                 set_plots(handles.ensemblePanel, ...
@@ -220,6 +212,12 @@ function refresh(self, panel, index)
                         'YTick', linspace(y_lim(1), y_lim(2), 5));
                 end
 
+                % tick label formatting
+                for ax = struct2array(eph.axes)
+                    xtick = get(ax, 'xtick');
+                    set(ax, 'xticklabel', ebfret.analysis.num_to_str(xtick));
+                end
+
                 % update time series plots
                 self.refresh('series');
             else
@@ -242,12 +240,12 @@ function refresh(self, panel, index)
             if (length(series) > 0) & (self.controls.series.value > 0)
                 n = self.controls.series.value;
 
+                plots.series = struct();
+                sph = get(handles.seriesPanel, 'handles');
+                x = series(n).signal(series(n).clip.min:series(n).clip.max);
+                t = series(n).time(series(n).clip.min:series(n).clip.max);
                 if ~self.series(n).exclude
                     % generate time series plot and observation histogram
-                    plots.series = struct();
-                    sph = get(handles.seriesPanel, 'handles');
-                    x = series(n).signal(series(n).clip.min:series(n).clip.max);
-                    t = series(n).time(series(n).clip.min:series(n).clip.max);
                     x_lim = get(sph.axes.obs, 'XLim');
                     x_bins = linspace(x_lim(1), x_lim(end), ...
                                 max(10, min(length(x)/10, 200)));
@@ -321,6 +319,13 @@ function refresh(self, panel, index)
                     end
                     % update time series x-axis limits
                     set(sph.axes.time, 'XLim', [min(t), max(t)]);
+
+                    % tick label formatting
+                    for ax = struct2array(sph.axes)
+                        xtick = get(ax, 'xtick');
+                        set(ax, 'xticklabel', ebfret.analysis.num_to_str(xtick));
+                    end
+
                     % update time series plot
                     set_plots(handles.seriesPanel, plots.series)
                     set(self, 'plots', plots);
