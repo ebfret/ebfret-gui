@@ -10,10 +10,10 @@ end
 
 ip = inputParser();
 ip.StructExpand = true;
-ip.addParamValue('min_hue', 0.25, @isnumeric);       
-ip.addParamValue('max_hue', 1.25, @isnumeric);       
-ip.addParamValue('min_vel', 0.75, @isnumeric);       
-ip.addParamValue('max_vel', 0.75, @isnumeric);       
+ip.addParamValue('min_hue', 0.3, @isnumeric);       
+ip.addParamValue('max_hue', 1.1, @isnumeric);       
+ip.addParamValue('min_vel', 0.66, @isnumeric);       
+ip.addParamValue('max_vel', 0.66, @isnumeric);       
 ip.parse(varargin{:});
 args = ip.Results;
 
