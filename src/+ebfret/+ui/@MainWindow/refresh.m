@@ -10,7 +10,7 @@ function refresh(self, panel, index)
             plots = get(self, 'plots');
             series = get(self, 'series');
             analysis = get(self, 'analysis');
-            if (length(series) > 0) && (length(analysis) > 0)
+            if (length(series) > 0) && (length(analysis) > 0) && any(~[self.series.exclude])
                 a = controls.ensemble.value;
                 
                 % clear plots
@@ -197,9 +197,13 @@ function refresh(self, panel, index)
                             x_lim = [max(1e-4 * x_lim(2), x_lim(1)), x_lim(2)];
                             % y_lim = [2e-3 * y_lim(2), 2 * y_lim(2)];
                         end
-                        set(eph.axes.(axes{ax}), ...
-                            'XLim', x_lim, 'YLim', y_lim, ...
-                            'YTick', linspace(y_lim(1), y_lim(2), 5));
+                        if all(isfinite(x_lim))
+                            set(eph.axes.(axes{ax}), 'XLim', x_lim);
+                        end
+                        if all(isfinite(y_lim))
+                            set(eph.axes.(axes{ax}), 'YLim', y_lim, ...
+                                'YTick', linspace(y_lim(1), y_lim(2), 5));
+                        end
                         % update plots
                         set_plots(handles.ensemblePanel, ...
                             axes{ax}, ax_plots);
