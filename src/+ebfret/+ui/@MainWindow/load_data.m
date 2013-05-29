@@ -38,35 +38,53 @@ function load_data(self, files, ftype)
     else
         append = false;
     end
-    switch ftype
-        case 1
-            if length(files) > 1
-                warndlg('You cannot load more than one ebfret session at a time. The first selected file will be loaded.');
-            end
-            session = load(files{1});
-            self.series = session.series; 
-            self.analysis = session.analysis;
-            self.plots = session.plots;
-            self.set_control(...
-                'ensemble', session.controls.ensemble, ...
-                'series', session.controls.series);
-            self.set_control(rmfield(session.controls, ...
-                {'ensemble', 'series', 'run_analysis'}));
-        case 2
-            for f = 1:length(files)
-                fprintf('loading file: %s\n', files{f})
+    % this seems a bit of a cludge, but works
+    cancelled = false;
+    function status = cancel()
+        cancelled = true; 
+        status = true;
+    end
+    if ftype == 1
+        if length(files) > 1
+            warndlg('You cannot load more than one ebfret session at a time. The first selected file will be loaded.');
+        end
+        session = load(files{1});
+        self.series = session.series; 
+        self.analysis = session.analysis;
+        self.plots = session.plots;
+        self.set_control(...
+            'ensemble', session.controls.ensemble, ...
+            'series', session.controls.series);
+        self.set_control(rmfield(session.controls, ...
+            {'ensemble', 'series', 'run_analysis'}));
+    end
+
+    if (ftype == 2) || (ftype == 3)
+        dlg = waitbar(0,'Loading','Name','Loading datasets', ...
+                      'CreateCancelBtn', 'cancelled = true', ...
+                      'Interpreter', 'none');
+        % set(dlg,'DefaultTextInterpreter','none');
+        for f = 1:length(files)
+            fname = fileparts(files{f})
+            waitbar((f-1)/(length(files)-1), dlg, sprintf('Loading: %s', fname));
+            if (ftype == 2)
                 [dons{f} accs{f} labels{f}] = ...
                     ebfret.data.fret.load_raw(files{f}, 'has_labels', true);
-            end
-        case 3
-            for d = 1:length(files)
+            elseif (ftype == 3)
                 [dons{f} accs{f}] = ...
                     ebfret.data.fret.load_sf_tracer(files{f});
                 labels{f} = 1:length(dons{f});
             end
-    end
+            if cancelled
+                return
+            end
+        end
 
-    if (ftype == 2) || (ftype == 3)
+        waitbar((f-1)/(length(files)-1), dlg, ...
+            ebfret.escape_tex(...
+                sprintf('Read %d time series from %d files', ...
+                    sum(cellfun(@length, labels)), length(files))));
+
         if ~append
             self.series = struct([]);
             group = 1;
@@ -114,14 +132,16 @@ function load_data(self, files, ftype)
             else
                 self.series = cat(1, self.series(:), series(:));
             end
-            self.reset_analysis(self.controls.min_states:self.controls.max_states);
-            self.set_control(...
-                'series', struct(...
-                            'min', 1, ...
-                            'max', length(self.series), ...
-                            'value', 1));
-            self.set_control('ensemble', struct('value', self.controls.min_states));
         end
+
+        self.reset_analysis(self.controls.min_states:self.controls.max_states);
+        self.set_control(...
+            'series', struct(...
+                        'min', 1, ...
+                        'max', length(self.series), ...
+                        'value', 1));
+        self.set_control('ensemble', struct('value', self.controls.min_states));
+        delete(dlg);
     end
     self.set_control('run_analysis', false);
     self.refresh('ensemble', 'series');
