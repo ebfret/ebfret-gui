@@ -5,7 +5,7 @@ function load_data(self, files, ftype)
                        '*.dat', 'Raw donor-acceptor time series (.dat)';
                        '*.tsv', 'SF-Tracer donor-acceptor time series (.tsv)';}, ...
                        'multiselect', 'on');
-        if isempty(fname)
+        if (ftype == 0)
             return
         end
         if iscell(fname)
