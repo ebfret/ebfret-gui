@@ -1,5 +1,5 @@
 function [x_lim y_lim] = get_lim(lines, threshold, pad)
-    % [x_lim y_lim] = getlim(lines, threshold, pad)
+    % [x_lim y_lim] = get_lim(lines, threshold, pad)
     % 
     % Calculates limits for x and y axis. 
     if nargin < 2
