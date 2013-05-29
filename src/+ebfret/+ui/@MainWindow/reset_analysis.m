@@ -13,19 +13,35 @@ function reset_analysis(self, num_states)
         self.analysis(k).dim.states = k;
         % initialize prior and posterior (if we have time series data)
         if (length(self.series) > 0) 
-            % get mean and variance of observations
+            % determine locations of states from median
+            %
+            % we'll calculate succesive median distances away from center
+            % and use these values to determine the locations of states,
+            % as well as the noise level
             x = self.get_signal();
             x = cat(1, x{:});
-            idx = find(isfinite(x));
-            x = x(idx);
-            % mean and variance of observations
-            E_x = mean(x);
-            V_x = var(x);
+            x0 = median(x);
+            left(1) = median(x(x<x0));
+            right(1) = median(x(x>x0));
+            for m = 2:5
+                left(m) = median(x(x<left(m-1)));
+                right(m) = median(x(x>right(m-1)));
+            end
+            
+
+            % get mean and variance of observations
+
+            % idx = find(isfinite(x));
+            % x = x(idx);
+            % % mean and variance of observations
+            % E_x = mean(x);
+            % V_x = var(x);
+
             % pick state means to observation mean and variance
-            mu = sqrt(V_x) * (1:k)';
-            theta.mu = mu - mean(mu) + E_x;
-            % assume noise level of 0.5 standard deviations
-            theta.lambda = 4 ./ V_x .* ones(size(theta.mu));
+            mu = linspace(left(end), right(end), k+2);
+            theta.mu = mu(2:end-1);
+            % assume noise level of 0.5 median deviations
+            theta.lambda = (4 ./ (right(1) - left(1))).^2 * ones(size(theta.mu));
             % assume dwell time is 1/10th of average time series length
             theta.tau = 0.1 * mean(cellfun(@length, {self.series.signal})) ...
                                    * ones(size(theta.mu));
