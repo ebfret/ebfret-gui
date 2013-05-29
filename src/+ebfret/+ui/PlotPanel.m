@@ -131,7 +131,8 @@ classdef PlotPanel < hgsetget
                 % do plots
                 for p = plots.(fields{f})(:)';
                     p.parent = handles.axes.(fields{f});
-                    line(p);
+                    keyvals = ebfret.struct_to_keyval(p, true);
+                    line(keyvals{:});
                 end
                 % % set axis properties
                 % props = getfield(get(self, 'props'), fields{f});
