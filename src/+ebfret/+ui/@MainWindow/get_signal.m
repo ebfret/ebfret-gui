@@ -7,10 +7,15 @@ function x = get_signal(self, series_index)
         s = self.series(n);
         if ~s.exclude
             x{n} = s.signal(s.crop.min:s.crop.max);
-            % % remove inf and nan instances
-            % x{n}(x{n} == inf) = 1 ./ eps;
-            % x{n}(x{n} == -inf) = -1 ./ eps;
-            % x{n}(isnan(x{n})) = 0;
+            % clip to specified range
+            if self.controls.clip.min < inf
+                clip = find(x{n} < self.controls.clip.min);
+                x{n}(clip) = self.controls.clip.min;
+            end
+            if self.controls.clip.max < inf
+                clip = find(x{n} > self.controls.clip.max);
+                x{n}(clip) = self.controls.clip.max;
+            end
         else
             x{n} = [];
         end
