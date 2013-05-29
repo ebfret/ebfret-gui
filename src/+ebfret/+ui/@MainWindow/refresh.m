@@ -22,7 +22,7 @@ function refresh(self, panel, index)
 
                 % intialize other colors if unspecified
                 if ~isfield(self.controls.colors, 'obs')
-                    self.controls.colors.obs = [0.4, 0.4, 0.4];
+                    self.controls.colors.obs = [0.3, 0.3, 0.3];
                 end
                 if ~isfield(self.controls.colors, 'viterbi')
                     self.controls.colors.viterbi = [0.66, 0.33, 0.33];
@@ -239,16 +239,15 @@ function refresh(self, panel, index)
                 analysis = struct([]);
             end
             
-            
             clear_plots(handles.seriesPanel);
             if (length(series) > 0) & (self.controls.series.value > 0)
                 n = self.controls.series.value;
 
                 plots.series = struct();
                 sph = get(handles.seriesPanel, 'handles');
-                x = series(n).signal(series(n).clip.min:series(n).clip.max);
-                t = series(n).time(series(n).clip.min:series(n).clip.max);
                 if ~self.series(n).exclude
+                    x = series(n).signal(series(n).clip.min:series(n).clip.max);
+                    t = series(n).time(series(n).clip.min:series(n).clip.max);
                     % generate time series plot and observation histogram
                     x_lim = get(sph.axes.obs, 'XLim');
                     x_bins = linspace(x_lim(1), x_lim(end), ...
@@ -312,6 +311,7 @@ function refresh(self, panel, index)
                                     scale);
                         catch err
                         end
+
                     else
                         plots.series.time = ebfret.plot.time_series(...
                             x(:), 'xdata', t(:), ...
@@ -321,19 +321,53 @@ function refresh(self, panel, index)
                             'linestyle', '-', ...
                             'color', self.controls.colors.obs);
                     end
-                    % update time series x-axis limits
-                    set(sph.axes.time, 'XLim', [min(t), max(t)]);
-
-                    % tick label formatting
-                    for ax = struct2array(sph.axes)
-                        xtick = get(ax, 'xtick');
-                        set(ax, 'xticklabel', ebfret.analysis.num_to_str(xtick));
-                    end
-
-                    % update time series plot
-                    set_plots(handles.seriesPanel, plots.series)
-                    set(self, 'plots', plots);
+                    % append data beyond clip point to time series plot 
+                    rng = series(n).clip.max:(series(n).clip.max+self.controls.clip_margin);
+                    rng = rng(rng < length(series(n).signal));
+                    xc = series(n).signal(rng);
+                    tc = series(n).time(rng);
+                    line = ebfret.plot.time_series(...
+                            xc(:), 'xdata', tc(:));
+                    l = length(plots.series.time);
+                    plots.series.time(l+1).xdata = line.xdata;
+                    plots.series.time(l+1).ydata = line.ydata;
+                    plots.series.time(l+1).color = self.controls.colors.excluded;
+                    plots.series.time(l+1).linestyle = '--';
+                    x = cat(1, x(:), xc(:));
+                    t = cat(1, t(:), tc(:));
+                else
+                    % just plot time series
+                    rng = series(n).clip.min:series(n).clip.max;
+                    x = series(n).signal(rng);
+                    t = series(n).time(rng);
+                    plots.series.time = ebfret.plot.time_series(...
+                        x(:), 'xdata', t(:), ...
+                        'linestyle', '-', ...
+                        'color', self.controls.colors.excluded);
+                    %rng = series(n).clip.max:(series(n).clip.max+self.controls.clip_margin);
+                    %rng = rng(rng < length(series(n).signal));
+                    rng = series(n).clip.max:length(series(n).signal);
+                    xc = series(n).signal(rng);
+                    tc = series(n).time(rng);
+                    plots.series.time(2) = ebfret.plot.time_series(...
+                        xc(:), 'xdata', tc(:), ...
+                        'linestyle', '--', ...
+                        'color', self.controls.colors.excluded);
+                    x = cat(1, x(:), xc(:));
+                    t = cat(1, t(:), tc(:));
                 end
+                % update time series x-axis limits
+                set(sph.axes.time, 'XLim', [min(t), max(t)]);
+
+                % tick label formatting
+                for ax = struct2array(sph.axes)
+                    xtick = get(ax, 'xtick');
+                    set(ax, 'xticklabel', ebfret.analysis.num_to_str(xtick));
+                end
+
+                % update time series plot
+                set_plots(handles.seriesPanel, plots.series)
+                set(self, 'plots', plots);
             else
                 clear_plots(handles.seriesPanel, ...
                     {'time', 'obs', 'mean', 'noise', 'dwell'});

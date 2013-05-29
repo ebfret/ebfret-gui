@@ -372,11 +372,13 @@ classdef MainWindow < hgsetget
                 'run_analysis', false, ...
                 'run_all', true, ...
                 'run_precision', 1e-3, ...
-                'scale_plots', true);
+                'scale_plots', true, ...
+                'clip_margin', 50);
 
             % set default time series plot colors
             self.controls.colors.obs = [0.4, 0.4, 0.4];
             self.controls.colors.viterbi = [0.66, 0.33, 0.33];
+            self.controls.colors.excluded = [0.7, 0.7, 0.7];
 
             % update intervals for gui
             self.controls.redraw.ensemble.interval = 10;

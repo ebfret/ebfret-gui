@@ -20,7 +20,8 @@ function set_control(self, varargin)
                    'run_all', ...
                    'run_precision', ...
                    'redraw_interval', ...
-                   'scale_plots'};
+                   'scale_plots', ...
+                   'clip_margin'};
     for c = 1:length(control_names)
         control = control_names{c};
         if ~any(strcmp(control, known_names))
@@ -97,7 +98,7 @@ function set_control(self, varargin)
                             controls.clip;
                         a = self.controls.min_states:self.controls.max_states;
                         self.reset_posterior(a, n);
-                        self.refresh('ensemble', 'series');
+                        self.refresh('series');
                     end
                 else
                     % disable clipping control if we have no data
