@@ -19,10 +19,10 @@ function remove_bleaching(self, method, thresholds)
                         % else
                            %     self.series(n).exclude = true;
                         % end
-                        % self.series(n).crop_max = min(id, ia);
-                        % if self.series(n).crop_max == self.series(n).crop_min
-                        %      self.series(n).exclude = true;
-                        % end
+                        self.series(n).crop_max = min(id, ia);
+                        if self.series(n).crop_max <= self.series(n).crop_min
+                             self.series(n).exclude = true;
+                        end
                     end
                 end
             case 2 
