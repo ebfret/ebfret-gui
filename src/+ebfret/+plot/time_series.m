@@ -82,9 +82,9 @@ function lines = time_series(x, varargin)
     lines = struct(props{:});
     % add plot for time series
     lines(1).ydata = x(:);
-    lines(1).linestyle = '-';
-    lines(1).marker = 'none';
-    lines(1).markerfacecolor = 'none';
+    % lines(1).linestyle = '-';
+    % lines(1).marker = 'none';
+    % lines(1).markerfacecolor = 'none';
     if ~isfield(lines, 'xdata')
         lines(1).xdata = 0:(length(x(:))-1);
     end
@@ -92,9 +92,9 @@ function lines = time_series(x, varargin)
     % plot viterbi path (if supplied)
     if (K > 0)
         lines(2).ydata = args.mean;
-        lines(2).linestyle = '-';
-        lines(2).marker = 'none';
-        lines(2).markerfacecolor = 'none';
+        % lines(2).linestyle = '-';
+        % lines(2).marker = 'none';
+        % lines(2).markerfacecolor = 'none';
         if isempty(lines(2).xdata)
             lines(2).xdata = lines(1).xdata;
         end
