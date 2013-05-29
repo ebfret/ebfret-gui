@@ -4,6 +4,8 @@ function bins = get_bins(x, num_bins, threshold)
     % Estimates a set of bin positions that is less sensitive to
     % outliers than Matlab's histogram function
     x = x(:);
+    % ignore inf and nan points
+    x = x(isfinite(x));
     if nargin < 2
         num_bins = max(10, min(200, round(length(x)/10))); 
     end
