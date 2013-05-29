@@ -65,6 +65,13 @@ function run_ebayes(self, varargin)
                 'threshold', self.controls.run_precision, ...
                 'max_iter', args.max_iter);
 
+            L(it) = sum(self.analysis(a).lowerbound);
+            if it == 1
+                fprintf('it %02d   L %.5e\n', it, L(it))
+            else
+                fprintf('it %02d   L %.5e    dL %.2e\n', it, L(it), (L(it)-L(it-1)) / abs(L(it)));
+            end
+
             % for n = 1:length(self.series)
             %     % % do empirical bayes updates for prior
             %     % if (n - eb_last) > eb_interval
@@ -80,16 +87,9 @@ function run_ebayes(self, varargin)
             end
             
             % check convergence
-            L(it) = sum(self.analysis(a).lowerbound);
             if (it > 1) ...
                && ((L(it) - L(it-1)) < self.controls.run_precision * abs(L(it)))  ...
                 break
-            end
-
-            if it == 1
-                fprintf('it %02d   L %.5e\n', it, L(it))
-            else
-                fprintf('it %02d   L %.5e    dL %.2e\n', it, L(it), (L(it)-L(it-1)) / abs(L(it)));
             end
 
             % check if we need to break
