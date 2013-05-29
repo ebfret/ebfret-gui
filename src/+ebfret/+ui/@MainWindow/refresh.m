@@ -246,8 +246,8 @@ function refresh(self, panel, index)
                 plots.series = struct();
                 sph = get(handles.seriesPanel, 'handles');
                 if ~self.series(n).exclude
-                    x = series(n).signal(series(n).clip.min:series(n).clip.max);
-                    t = series(n).time(series(n).clip.min:series(n).clip.max);
+                    x = series(n).signal(series(n).crop.min:series(n).crop.max);
+                    t = series(n).time(series(n).crop.min:series(n).crop.max);
                     % generate time series plot and observation histogram
                     x_lim = get(sph.axes.obs, 'XLim');
                     x_bins = linspace(x_lim(1), x_lim(end), ...
@@ -321,8 +321,8 @@ function refresh(self, panel, index)
                             'linestyle', '-', ...
                             'color', self.controls.colors.obs);
                     end
-                    % append data beyond clip point to time series plot 
-                    rng = series(n).clip.max:(series(n).clip.max+self.controls.clip_margin);
+                    % append data outside cropping area to time series plot 
+                    rng = series(n).crop.max:(series(n).crop.max+self.controls.crop_margin);
                     rng = rng(rng < length(series(n).signal));
                     xc = series(n).signal(rng);
                     tc = series(n).time(rng);
@@ -337,16 +337,16 @@ function refresh(self, panel, index)
                     t = cat(1, t(:), tc(:));
                 else
                     % just plot time series
-                    rng = series(n).clip.min:series(n).clip.max;
+                    rng = series(n).crop.min:series(n).crop.max;
                     x = series(n).signal(rng);
                     t = series(n).time(rng);
                     plots.series.time = ebfret.plot.time_series(...
                         x(:), 'xdata', t(:), ...
                         'linestyle', '-', ...
                         'color', self.controls.colors.excluded);
-                    %rng = series(n).clip.max:(series(n).clip.max+self.controls.clip_margin);
+                    %rng = series(n).crop.max:(series(n).crop.max+self.controls.crop_margin);
                     %rng = rng(rng < length(series(n).signal));
-                    rng = series(n).clip.max:length(series(n).signal);
+                    rng = series(n).crop.max:length(series(n).signal);
                     xc = series(n).signal(rng);
                     tc = series(n).time(rng);
                     plots.series.time(2) = ebfret.plot.time_series(...

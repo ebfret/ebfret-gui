@@ -15,9 +15,13 @@ function remove_bleaching(self, method, thresholds)
                         % % but we'll allow a few time points tolerance
                         % tol = 5;
                         % if (ia < (id + tol));
-                        %     self.series(n).clip.max = min(ia, id);
+                        %     self.series(n).crop.max = min(ia, id);
                         % else
                            %     self.series(n).exclude = true;
+                        % end
+                        % self.series(n).crop_max = min(id, ia);
+                        % if self.series(n).crop_max == self.series(n).crop_min
+                        %      self.series(n).exclude = true;
                         % end
                     end
                 end
@@ -27,36 +31,36 @@ function remove_bleaching(self, method, thresholds)
                 W0 = floor(W/2);
                 kernel = ebfret.analysis.normalize(exp(-linspace(-1.5,1.5,W).^2));
                 for n = 1:length(self.series)
-                    clip_max = length(self.series(n).signal) - self.series(n).clip.min;
+                    crop_max = length(self.series(n).signal) - self.series(n).crop.min;
                     if ~isnan(thresholds.fret)
-                        signal = conv(self.series(n).signal(self.series(n).clip.min:end), kernel, 'valid');
-                        clip_max = ...
-                            min(min(clip_max, ...
+                        signal = conv(self.series(n).signal(self.series(n).crop.min:end), kernel, 'valid');
+                        crop_max = ...
+                            min(min(crop_max, ...
                                 [find(signal < thresholds.fret, 1, 'first') + W0, inf]));
                     end
                     if ~isnan(thresholds.acc) || ~isnan(thresholds.sum)
-                        acceptor = conv(self.series(n).acceptor(self.series(n).clip.min:end), kernel, 'valid');
-                        clip_max = ...
-                            min(min(clip_max, ...
+                        acceptor = conv(self.series(n).acceptor(self.series(n).crop.min:end), kernel, 'valid');
+                        crop_max = ...
+                            min(min(crop_max, ...
                                 [find(acceptor < thresholds.acc, 1, 'first') + W0, inf]));
                     end
                     if ~isnan(thresholds.don) || ~isnan(thresholds.sum)
-                        donor = conv(self.series(n).donor(self.series(n).clip.min:end), kernel, 'valid');
-                        clip_max = ...
-                            min(min(clip_max, ...
+                        donor = conv(self.series(n).donor(self.series(n).crop.min:end), kernel, 'valid');
+                        crop_max = ...
+                            min(min(crop_max, ...
                                 [find(donor < thresholds.don, 1, 'first') + W0, inf]));
                     end
                     if ~isnan(thresholds.sum)
-                        clip_max = ...
-                            min(min(clip_max, ...
+                        crop_max = ...
+                            min(min(crop_max, ...
                                 [find(donor+acceptor < thresholds.sum, 1, 'first') + W0, inf]));
                     end
                     if ~isnan(thresholds.pad)
-                        clip_max = ...
-                            clip_max - thresholds.pad;
+                        crop_max = ...
+                            crop_max - thresholds.pad;
                     end
-                    if clip_max > 0
-                        self.series(n).clip.max = clip_max + self.series(n).clip.min;
+                    if crop_max > 0
+                        self.series(n).crop.max = crop_max + self.series(n).crop.min;
                         self.series(n).exclude = false;
                     else
                         self.series(n).exclude = true;
@@ -65,8 +69,8 @@ function remove_bleaching(self, method, thresholds)
             otherwise
                 return
         end
-        self.reset_analysis(self.controls.min_states:self.controls.max_states);
-        self.set_control('clip', struct('max', self.series(self.controls.series.value).clip.max));
+        self.reset_posterior(self.controls.min_states:self.controls.max_states);
+        self.set_control('crop', struct('max', self.series(self.controls.series.value).crop.max));
         self.refresh('ensemble', 'series');
     end
 end

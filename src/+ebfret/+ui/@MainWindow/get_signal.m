@@ -6,7 +6,7 @@ function x = get_signal(self, series_index)
     for n = series_index
         s = self.series(n);
         if ~s.exclude
-            x{n} = s.signal(s.clip.min:s.clip.max);
+            x{n} = s.signal(s.crop.min:s.crop.max);
             % % remove inf and nan instances
             % x{n}(x{n} == inf) = 1 ./ eps;
             % x{n}(x{n} == -inf) = -1 ./ eps;

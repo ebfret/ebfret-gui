@@ -20,7 +20,7 @@ function reset_posterior(self, analysis_index, series_index)
                 self.analysis(a).prior;
             self.analysis(a).expect(n) = ...
                 struct('z', [], 'z1', [], 'zz', [], 'x', [], 'xx', []);
-            if s.exclude || (s.clip.max == s.clip.min)
+            if s.exclude || (s.crop.max == s.crop.min)
                 fields = fieldnames(self.analysis(a).posterior);
                 for f = 1:length(fields)
                     self.analysis(a).posterior(n).(fields{f}) = [];

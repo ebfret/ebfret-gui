@@ -111,7 +111,7 @@ function load_data(self, files, ftype)
                             'signal', {}, ...
                             'donor', {}, ...
                             'acceptor', {}, ...
-                            'clip', {}, ...
+                            'crop', {}, ...
                             'exclude', {});
             
             for n = 1:length(don)
@@ -124,8 +124,8 @@ function load_data(self, files, ftype)
                 series(n).signal = series(n).acceptor ...
                                     ./ (series(n).acceptor + series(n).donor);
                 series(n).exclude = false;
-                series(n).clip.min = 1;
-                series(n).clip.max = length(series(n).time);
+                series(n).crop.min = 1;
+                series(n).crop.max = length(series(n).time);
             end
             if isempty(self.series)
                 self.series = series;
