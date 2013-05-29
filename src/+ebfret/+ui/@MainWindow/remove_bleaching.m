@@ -30,6 +30,7 @@ function remove_bleaching(self, method, thresholds)
                 W = 7;
                 W0 = floor(W/2);
                 kernel = ebfret.analysis.normalize(exp(-linspace(-1.5,1.5,W).^2));
+                excluded = 0;
                 for n = 1:length(self.series)
                     crop_max = length(self.series(n).signal) - self.series(n).crop.min;
                     if ~isnan(thresholds.fret)
@@ -64,11 +65,19 @@ function remove_bleaching(self, method, thresholds)
                         self.series(n).exclude = false;
                     else
                         self.series(n).exclude = true;
+                        excluded = excluded + 1;
                     end
                 end
             otherwise
                 return
         end
+        if nargin < 2
+            T = arrayfun(@(s) s.crop.max - s.crop.min + 1, self.series);
+            msgbox({sprintf('Total length: %d. Median length: %.1f.', sum(T), median(T)); ...
+                    ''; ...
+                    sprintf('Excluded %d out of %d time series from analysis.', excluded, length(self.series))});
+        end
+
         self.reset_posterior(self.controls.min_states:self.controls.max_states);
         self.set_control('crop', struct('max', self.series(self.controls.series.value).crop.max));
         self.refresh('ensemble', 'series');
