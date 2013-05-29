@@ -65,8 +65,8 @@ function load_data(self, files, ftype)
                       'Interpreter', 'none');
         % set(dlg,'DefaultTextInterpreter','none');
         for f = 1:length(files)
-            fname = fileparts(files{f})
-            waitbar((f-1)/(length(files)-1), dlg, sprintf('Loading: %s', fname));
+            [void name] = fileparts(files{f});
+            waitbar((f-1)/(length(files)-1), dlg, ebfret.escape_tex(name));
             if (ftype == 2)
                 [dons{f} accs{f} labels{f}] = ...
                     ebfret.data.fret.load_raw(files{f}, 'has_labels', true);
