@@ -87,9 +87,10 @@ function load_data(self, files, ftype)
 
         if ~append
             self.series = struct([]);
-            group = 1;
+            group = 'group 1';
         else
-            group = max([self.series.group]) + 1;
+            num_groups = length(unique({self.series.group}));
+            group = sprintf('group %d', num_groups+1);
         end
         for f = 1:length(files)
             % strip empty time series
