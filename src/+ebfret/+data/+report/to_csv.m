@@ -1,18 +1,20 @@
-function to_csv(report, filename, sep, tab)
-    if nargin < 2
-        [fname, fpath, findex] = ...
-            uiputfile({'*.csv', 'ebFRET analysis summary (.csv)';});
-        filename = sprintf('%s/%s', fpath, fname);
-    end
+function to_csv(filename, report, varargin)
+    ip = inputParser();
+    ip.StructExpand = true;
+    ip.addParamValue('separator', ',', @isstr);       
+    ip.addParamValue('indent', '    ', @isstr);       
+    ip.parse(varargin{:});
+    args = ip.Results;
+
     if nargin < 3
-        sep = ',';
+        args.separator = ',';
     end
     if nargin < 4
-        tab = '    ';
+        args.indent = '    ';
     end
     function field = indent(field, level)
         for l = 1:level
-            field = sprintf('%s%s', tab, field);
+            field = sprintf('%s%s', args.indent, field);
         end
     end
     function lines = parse(node, level)
@@ -27,20 +29,20 @@ function to_csv(report, filename, sep, tab)
             if isstruct(node(1).(fields{f}))
                 lines = cat(1, lines, parse([node.(fields{f})], level+1));
             elseif isstr(node(1).(fields{f}))
-                lines{r0+1,1}{2} = sprintf([sep, '%s'], node.(fields{f}));
+                lines{r0+1,1}{2} = sprintf([args.separator, '%s'], node.(fields{f}));
             elseif iscell(node(1).(fields{f}))
                 for n = 1:length(node)
-                    lines{r0+1,1}{1+n} = sprintf([sep, '%s'], node(n).(fields{f}){:});
+                    lines{r0+1,1}{1+n} = sprintf([args.separator, '%s'], node(n).(fields{f}){:});
                 end
             elseif isvector(node(1).(fields{f}))
                 for n = 1:length(node)
-                    lines{r0+1,1}{1+n} = sprintf([sep, '%.3e'], node(n).(fields{f}));
+                    lines{r0+1,1}{1+n} = sprintf([args.separator, '%.3e'], node(n).(fields{f}));
                 end
             elseif ismatrix(node(1).(fields{f}))
                 for n = 1:length(node)
                     data = node(n).(fields{f});
                     for r = 1:size(data, 1);
-                        lines{r0+r,1}{1+n} = sprintf([sep, '%.3e'], data(r,:));    
+                        lines{r0+r,1}{1+n} = sprintf([args.separator, '%.3e'], data(r,:));    
                     end
                 end
             end
