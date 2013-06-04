@@ -39,8 +39,8 @@ function varargout = load_sf_tracer(data_files)
             % time series index is on 2nd column
             c = data(l, 2) + 1;
             % background intensity is on 4th column
-            bg = data(l, 4);
+            bg = data(l, 5);
             % signal intensities are on remaining columns
-            varargout{c}{n} = data(l, 5:end)';
+            varargout{c}{n} = data(l, 6:end)' - bg;
         end
     end
