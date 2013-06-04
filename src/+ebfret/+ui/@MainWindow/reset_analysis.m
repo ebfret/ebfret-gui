@@ -27,18 +27,14 @@ function reset_analysis(self, num_states)
                 left(m) = median(x(x<left(m-1)));
                 right(m) = median(x(x>right(m-1)));
             end
-            
 
-            % get mean and variance of observations
-
-            % idx = find(isfinite(x));
-            % x = x(idx);
-            % % mean and variance of observations
-            % E_x = mean(x);
-            % V_x = var(x);
+            % get limits from histogram counts
+            [h b] = hist(x, linspace(left(end), right(end), min(200, length(x)/10)));
+            x_min = b(find(h > 0.01 * max(h), 1, 'first'));
+            x_max = b(find(h > 0.01 * max(h), 1, 'last'));
 
             % pick state means to observation mean and variance
-            mu = linspace(left(end), right(end), k+2);
+            mu = linspace(x_min, x_max, k+2);
             theta.mu = mu(2:end-1);
             % assume noise level of 0.5 median deviations
             theta.lambda = (4 ./ (right(1) - left(1))).^2 * ones(size(theta.mu));
