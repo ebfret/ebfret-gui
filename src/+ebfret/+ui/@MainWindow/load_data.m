@@ -49,6 +49,15 @@ function load_data(self, files, ftype)
             warndlg('You cannot load more than one ebfret session at a time. The first selected file will be loaded.');
         end
         session = load(files{1});
+        % check for old style group label (numeric instead of string)
+        if all(cellfun(@isnumeric, {session.series.group}))
+            groups = unique([session.series.group]);
+            ns = arrayfun(@(g) find([session.series.group] == g), ...
+                    groups, 'UniformOutput', false);
+            for g = 1:length(groups)
+                [session.series(ns{g}).group] = deal(sprintf('group %d', groups(g)));
+            end
+        end
         self.series = session.series; 
         self.analysis = session.analysis;
         self.plots = session.plots;
