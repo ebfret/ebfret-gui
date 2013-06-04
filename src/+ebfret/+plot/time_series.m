@@ -7,6 +7,8 @@ function lines = time_series(x, varargin)
     % ------
     % x : [N 1]
     %   Observations
+    % t : [N 1]
+    %   Time
     %
     % Variable Inputs
     % ---------------
@@ -20,6 +22,8 @@ function lines = time_series(x, varargin)
     %   Total number of states (useful when weights are not supplied)
     % 'mean' : [T 1]
     %   State mean associated with each observation
+    % 'crop' : struct('min', int, 'max', int)
+    %   crop range for signal
     % varargin : {'property', {values}}
     %   Any additional line properties.  
     %
@@ -39,10 +43,12 @@ function lines = time_series(x, varargin)
     ip = inputParser();
     ip.StructExpand = true;
     ip.KeepUnmatched = true;
+    ip.addOptional('t', [], @isnumeric);       
     ip.addParamValue('weights', [], @isnumeric);       
     ip.addParamValue('state', [], @isnumeric);       
     ip.addParamValue('mean', [], @isnumeric);       
     ip.addParamValue('num_states', [], @isnumeric);       
+    ip.addParamValue('crop', struct([]), @isstruct);       
     ip.parse(varargin{:});
     args = ip.Results;
 
@@ -60,6 +66,7 @@ function lines = time_series(x, varargin)
     else
         K = args.num_states;
     end
+    
     % get state index from weights if not supplied
     if isempty(args.state) & ~isempty(args.weights)
         [void args.state] = max(args.weights, [], 2);
@@ -70,45 +77,63 @@ function lines = time_series(x, varargin)
         args.weights = bsxfun(@eq, args.state(:), 1:K);
     end
 
-    % get mean from weights if not specified
-    if isempty(args.mean) & ~isempty(args.weights)
-        E_x = sum(bsxfun(@times, x(:), args.weights),1) ...
-              ./ sum(args.weights, 1);
-        args.mean = E_x(args.state(:));
+    % get crop range if specified
+    if ~isempty(args.crop)        
+        in = args.crop.min:args.crop.max;
+        out = {1:args.crop.min args.crop.max:length(x)};
+    else
+        in = 1:length(x);
+        out = {[] []};
     end
     
     % get line properties from unmatched params
     props = cat(2, fieldnames(ip.Unmatched), struct2cell(ip.Unmatched))';
     lines = struct(props{:});
-    % add plot for time series
-    lines(1).ydata = x(:);
-    % lines(1).linestyle = '-';
-    % lines(1).marker = 'none';
-    % lines(1).markerfacecolor = 'none';
-    if ~isfield(lines, 'xdata')
-        lines(1).xdata = 0:(length(x(:))-1);
+
+    % set time axis if not specified
+    if isempty(args.t)
+        args.t = 0:(length(x)-1);
     end
 
-    % plot viterbi path (if supplied)
-    if (K > 0)
-        lines(2).ydata = args.mean;
-        % lines(2).linestyle = '-';
-        % lines(2).marker = 'none';
-        % lines(2).markerfacecolor = 'none';
-        if isempty(lines(2).xdata)
+    % plot included area
+    if ~isempty(in)
+        % plot time series
+        lines(1).ydata = x(in);
+        lines(1).xdata = args.t(in);
+
+        % get mean from weights if not specified
+        if isempty(args.mean) & ~isempty(args.weights)
+            E_x = sum(bsxfun(@times, x(in), args.weights),1) ...
+                  ./ sum(args.weights, 1);
+            args.mean = E_x(args.state(:));
+        end
+        
+        if ~isempty(args.mean)
+            % plot viterbi path (if supplied)
+            lines(2).ydata = args.mean;
             lines(2).xdata = lines(1).xdata;
+            % plot state markers
+            for k = 1:K
+                lines(k+2).xdata = lines(2).xdata(args.state==k);
+                lines(k+2).ydata = lines(2).ydata(args.state==k);
+                lines(k+2).marker = 'o';
+                lines(k+2).linestyle = 'none';
+                if isfield(lines, 'color')
+                    lines(k+2).markerfacecolor = lines(k+2).color;
+                end
+            end
         end
     end
 
-    % plot state markers
-    for k = 1:K
-        lines(k+2).xdata = lines(1).xdata(args.state==k);
-        lines(k+2).ydata = lines(2).ydata(args.state==k);
-        lines(k+2).marker = 'o';
-        lines(k+2).linestyle = 'none';
-        if isfield(lines, 'color')
-            lines(k+2).markerfacecolor = lines(k+2).color;
-        else
-            lines(k+2).markerfacecolor = 'auto';
+    % plot excluded areas
+    for o = 1:length(out)
+        if length(out{o}) > 1
+            l = length(lines)+1;
+            lines(l).ydata = x(out{o});
+            lines(l).xdata = args.t(out{o});
+            lines(l).linestyle = '--';
+            if isfield(lines, 'color')
+                lines(l).color = lines(1).color;
+            end
         end
     end

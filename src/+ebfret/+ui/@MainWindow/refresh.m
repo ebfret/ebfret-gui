@@ -134,7 +134,6 @@ function refresh(self, panel, index)
                 eph = get(handles.ensemblePanel, 'handles');
 
                 % set logarithmic axis for dwell time plots
-                set(sph.axes.dwell, 'XScale', 'log');
                 set(eph.axes.dwell, 'XScale', 'log');
 
                 % set axis limits for observations
@@ -142,7 +141,7 @@ function refresh(self, panel, index)
                     ebfret.plot.get_lim(plots.ensemble.obs, ...
                         1e-2, [0.05, 0.05, 0.05, 0.15]);
                 try
-                    set(sph.axes.time, 'YLim', x_lim);
+                    set(sph.axes.signal, 'YLim', x_lim);
                     set(sph.axes.obs, ...
                         'XLim', x_lim, 'YLim', y_lim, ...
                         'YTick', linspace(y_lim(1), y_lim(2), 5));
@@ -152,8 +151,7 @@ function refresh(self, panel, index)
                 catch
                     % copy limits from histogram plot
                     x_lim = get(eph.axes.obs, 'xlim');
-                    set(sph.axes.time, 'YLim', x_lim);
-                    set(sph.axes.obs, 'XLim', x_lim);
+                    set(sph.axes.signal, 'YLim', x_lim);
                 end
                    
                 % update ensemble plots
@@ -210,16 +208,6 @@ function refresh(self, panel, index)
                     end
                 end
 
-                % sync axis limits of series plots with esenmble plots
-                axes = fieldnames(eph.axes);
-                for ax = 1:length(axes)
-                    x_lim = get(eph.axes.(axes{ax}), 'xlim');
-                    y_lim = get(eph.axes.(axes{ax}), 'ylim');
-                    set(sph.axes.(axes{ax}), ...
-                        'XLim', x_lim, 'YLim', y_lim, ...
-                        'YTick', linspace(y_lim(1), y_lim(2), 5));
-                end
-
                 % tick label formatting
                 for ax = struct2array(eph.axes)
                     xtick = get(ax, 'xtick');
@@ -246,122 +234,53 @@ function refresh(self, panel, index)
             clear_plots(handles.seriesPanel);
             if (length(series) > 0) & (self.controls.series.value > 0)
                 n = self.controls.series.value;
-
                 plots.series = struct();
                 sph = get(handles.seriesPanel, 'handles');
+                % get crop range
                 if ~self.series(n).exclude
-                    x = series(n).signal(series(n).crop.min:series(n).crop.max);
-                    t = series(n).time(series(n).crop.min:series(n).crop.max);
-                    % generate time series plot and observation histogram
-                    x_lim = get(sph.axes.obs, 'XLim');
-                    x_bins = linspace(x_lim(1), x_lim(end), ...
-                                max(10, min(length(x)/10, 200)));
-                    if ~isempty(analysis)
-                        % set state colors
-                        self.controls.colors.state = ...
-                            ebfret.plot.line_colors(analysis.dim.states);
-
-                        if ~isempty(analysis.viterbi(n).state)
-                            pargs.state = analysis.viterbi(n).state;
-                            pargs.num_states = analysis.dim.states;
-                            pargs.color = self.controls.colors.state;
-                        else
-                            pargs.color = self.controls.colors.obs; 
-                        end
-                        plots.series.obs = ebfret.plot.state_obs(...
-                            x, pargs, ...
-                            'xdata', x_bins, ...
-                            'linestyle', '-');
-                        if ~isempty(analysis.viterbi(n).state)
-                            pargs.color = {self.controls.colors.obs, ...
-                                           self.controls.colors.viterbi, ...
-                                           self.controls.colors.state{:}};
-                        end
-                        plots.series.time = ebfret.plot.time_series(...
-                            x(:), 'xdata', t(:), pargs, ...
-                            'markersize', 4);
-
-                        % update posterior plots
-                        try
-                            if self.controls.scale_plots
-                                scale = analysis.expect(n).z;
-                            else
-                                scale = 1;
-                            end
-                            w = analysis.posterior(n);
-                            plots.series.mean = ...
-                                ebfret.plot.scale(...,
-                                    ebfret.plot.state_mean(...
-                                        w.mu, w.beta, 0.5 * w.nu, 0.5 ./ w.W, ...
-                                        'xdata', {self.plots.ensemble.prior.mean.xdata}, ...
-                                        'linestyle', '-', ...
-                                        'color', self.controls.colors.state), ...
-                                    scale);
-                            plots.series.noise = ...
-                                ebfret.plot.scale(...,
-                                    ebfret.plot.state_stdev(...
-                                        0.5 * w.nu, 0.5 ./ w.W, ...
-                                        'xdata', {self.plots.ensemble.prior.noise.xdata}, ...
-                                        'linestyle', '-', ...
-                                        'color', self.controls.colors.state), ...
-                                    scale);
-                            plots.series.dwell = ...
-                                ebfret.plot.scale(...,
-                                    ebfret.plot.state_dwell(...
-                                        w.A, ...
-                                        'xdata', {self.plots.ensemble.prior.dwell.xdata}, ...
-                                        'linestyle', '-', ...
-                                        'color', self.controls.colors.state), ...
-                                    scale);
-                        catch err
-                        end
-
-                    else
-                        plots.series.time = ebfret.plot.time_series(...
-                            x(:), 'xdata', t(:), ...
-                            'color', {self.controls.colors.obs});
-                        plots.series.obs = ebfret.plot.state_obs(...
-                            x, 'xdata', x_bins, ...
-                            'linestyle', '-', ...
-                            'color', self.controls.colors.obs);
-                    end
-                    % append data outside cropping area to time series plot 
-                    rng = series(n).crop.max:(series(n).crop.max+self.controls.crop_margin);
-                    rng = rng(rng < length(series(n).signal));
-                    xc = series(n).signal(rng);
-                    tc = series(n).time(rng);
-                    line = ebfret.plot.time_series(...
-                            xc(:), 'xdata', tc(:));
-                    l = length(plots.series.time);
-                    plots.series.time(l+1).xdata = line.xdata;
-                    plots.series.time(l+1).ydata = line.ydata;
-                    plots.series.time(l+1).color = self.controls.colors.excluded;
-                    plots.series.time(l+1).linestyle = '--';
-                    x = cat(1, x(:), xc(:));
-                    t = cat(1, t(:), tc(:));
+                    crop = self.series(n).crop;
                 else
-                    % just plot time series
-                    rng = series(n).crop.min:series(n).crop.max;
-                    x = series(n).signal(rng);
-                    t = series(n).time(rng);
-                    plots.series.time = ebfret.plot.time_series(...
-                        x(:), 'xdata', t(:), ...
-                        'linestyle', '-', ...
-                        'color', self.controls.colors.excluded);
-                    %rng = series(n).crop.max:(series(n).crop.max+self.controls.crop_margin);
-                    %rng = rng(rng < length(series(n).signal));
-                    rng = series(n).crop.max:length(series(n).signal);
-                    xc = series(n).signal(rng);
-                    tc = series(n).time(rng);
-                    plots.series.time(2) = ebfret.plot.time_series(...
-                        xc(:), 'xdata', tc(:), ...
-                        'linestyle', '--', ...
-                        'color', self.controls.colors.excluded);
-                    x = cat(1, x(:), xc(:));
-                    t = cat(1, t(:), tc(:));
+                    crop.max = length(self.series(n).signal);
+                    crop.min = crop.max;
                 end
+                pargs = struct('crop', self.series(n).crop, 'markersize', 4);
+                try
+                    % set state colors
+                    self.controls.colors.state = ...
+                        ebfret.plot.line_colors(analysis.dim.states);
+                    % use viterbi path if available
+                    pargs.state = analysis.viterbi(n).state;
+                    pargs.num_states = analysis.dim.states;
+                    pargs.color = {self.controls.colors.obs, ...
+                                   self.controls.colors.viterbi, ...
+                                   self.controls.colors.state{:}};
+                catch
+                    % just plot signal otherwise
+                    pargs.color = {self.controls.colors.obs}; 
+                end
+                % plot signal
+                plots.series.signal = ebfret.plot.time_series(...
+                    series(n).signal, series(n).time, pargs);
+                try
+                    % plot raw signal if available
+                    pargs.color{1} = self.controls.colors.donor;
+                    donor = ebfret.plot.time_series(...
+                                series(n).donor, series(n).time, pargs);
+                    pargs.color{1} = self.controls.colors.acceptor;
+                    acceptor = ebfret.plot.time_series(...
+                                    series(n).acceptor, series(n).time, pargs);
+                    plots.series.raw = [donor(1), donor(3:end), acceptor(1), acceptor(3:end)];
+                catch err
+                    % simply ignore errors
+                    rethrow(err)
+                end
+                
                 % update time series x-axis limits
-                set(sph.axes.time, 'XLim', [min(t), max(t)]);
+                t_min = min(self.series(n).time);
+                t_max = self.series(n).time(min(length(self.series(n).signal), ...
+                                                    crop.max + self.controls.crop_margin));
+                set(sph.axes.signal, 'XLim', [t_min, t_max]);
+                set(sph.axes.raw, 'XLim', [t_min, t_max]);
 
                 % tick label formatting
                 for ax = struct2array(sph.axes)
@@ -374,8 +293,7 @@ function refresh(self, panel, index)
                 set(self, 'plots', plots);
             else
                 clear_plots(handles.seriesPanel, ...
-                    {'time', 'obs', 'mean', 'noise', 'dwell'});
-
+                    {'signal', 'raw'});
             end
     end
 end
