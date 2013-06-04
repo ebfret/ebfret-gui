@@ -131,8 +131,8 @@ function load_data(self, files, ftype)
                 series(n).donor = don{n}(:);
                 series(n).acceptor = acc{n}(:);
                 series(n).time = (1:length(series(n).donor))';
-                series(n).signal = series(n).acceptor ...
-                                    ./ (series(n).acceptor + series(n).donor);
+                series(n).signal = (series(n).acceptor + eps) ...
+                                    ./ (series(n).acceptor + series(n).donor + eps);
                 series(n).exclude = false;
                 series(n).crop.min = 1;
                 series(n).crop.max = length(series(n).time);
