@@ -29,11 +29,30 @@ function lines = state_stdev(a, b, varargin)
     %       Any other line properties (see doc line_props). Entries 
     %       can contain either a single or  
     %       
+    ip = inputParser();
+    ip.StructExpand = true;
+    ip.KeepUnmatched = true;
+    ip.addParamValue('labels', {}, @iscell);       
+    ip.parse(varargin{:});
+
+    args = ip.Results;
     K = size(a,1);
-    lines = struct(varargin{:});
+
+    % initialize labels if necessary
+    if isempty(args.labels)
+        args.labels = arrayfun(@(k) sprintf('state %d', k), ...
+                        1:K, ...
+                        'uniformoutput', false);
+    end
+
+    % get line properties from unmatched params
+    props = cat(2, fieldnames(ip.Unmatched), struct2cell(ip.Unmatched))';
+    lines = struct(props{:}, 'displayname', args.labels);
     if isscalar(lines)
         lines(1:K) = lines;
     end
+
+    % determine x axis range if not specified
     if ~isfield(lines, 'xdata')
         for k = 1:K
             E_l = a(k,:) ./ b(k,:);
@@ -44,6 +63,8 @@ function lines = state_stdev(a, b, varargin)
             lines(k).xdata = x(2:end);
         end
     end
+
+    % generate y values for plots
     for k = 1:K
         lines(k).ydata = ...
             bsxfun(@times, ... 

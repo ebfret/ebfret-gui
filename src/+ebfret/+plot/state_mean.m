@@ -32,6 +32,14 @@ function lines = state_mean(m, beta, a, b, varargin)
     %       can contain either a single or  
     %       
 
+    % parse variable args
+    ip = inputParser();
+    ip.StructExpand = true;
+    ip.KeepUnmatched = true;
+    ip.addParamValue('labels', {}, @iscell);       
+    ip.parse(varargin{:});
+    args = ip.Results;
+
     % ensure inputs shaped [K N]
     K = size(m, 1);
     m = reshape(m, [K prod(size(m))/K]);
@@ -39,10 +47,21 @@ function lines = state_mean(m, beta, a, b, varargin)
     a = reshape(a, [K prod(size(a))/K]);
     b = reshape(b, [K prod(size(b))/K]);
 
-    lines = struct(varargin{:});
+    % initialize labels if necessary
+    if isempty(args.labels)
+        args.labels = arrayfun(@(k) sprintf('state %d', k), ...
+                        1:K, ...
+                        'uniformoutput', false);
+    end
+
+    % get line properties from unmatched params
+    props = cat(2, fieldnames(ip.Unmatched), struct2cell(ip.Unmatched))';
+    lines = struct(props{:}, 'displayname', args.labels);
     if isscalar(lines)
         lines(1:K) = lines;
     end
+
+    % determine x axis range if not specified
     if ~isfield(lines, 'xdata')
         for k = 1:K
             E_mu = m(k,:);
@@ -52,6 +71,8 @@ function lines = state_mean(m, beta, a, b, varargin)
                          max(E_mu + 4 * V_mu.^0.5), 101)';
         end
     end
+
+    % generate y values for plots
     for k = 1:K
         % marginal p(mu | w) is a student t with parameters
         %

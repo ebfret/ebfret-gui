@@ -37,11 +37,12 @@ function lines = state_obs(x, varargin)
     ip.KeepUnmatched = true;
     ip.addParamValue('weights', [], @isnumeric);       
     ip.addParamValue('state', [], @isnumeric);       
+    ip.addParamValue('labels', {}, @iscell);       
     ip.addParamValue('num_states', [], @isnumeric);       
     ip.parse(varargin{:});
     args = ip.Results;
 
-    % initialize states if necessary
+    % initialize state labels if necessary
     if isempty(args.weights) & isempty(args.state)
         args.state = ones(length(x), 1);
         args.num_states = 1;
@@ -57,13 +58,21 @@ function lines = state_obs(x, varargin)
     % get number of states
     K = args.num_states;
 
+    % initialize labels if necessary
+    if isempty(args.labels)
+        args.labels = arrayfun(@(k) sprintf('state %d', k), ...
+                        1:args.num_states, ...
+                        'uniformoutput', false);
+    end
+
     % get line properties from unmatched params
     props = cat(2, fieldnames(ip.Unmatched), struct2cell(ip.Unmatched))';
-    lines = struct(props{:});
+    lines = struct(props{:}, 'displayname', args.labels);
     if isscalar(lines)
         lines(1:K) = lines;
     end
 
+    % generate histogram plots
     pargs.num_states = args.num_states;
     if ~isempty(args.weights)
         pargs.weights = args.weights;

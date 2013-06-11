@@ -100,6 +100,7 @@ function lines = time_series(x, varargin)
         % plot time series
         lines(1).ydata = x(in);
         lines(1).xdata = args.t(in);
+        lines(1).displayname = 'signal';
 
         % get mean from weights if not specified
         if isempty(args.mean) & ~isempty(args.weights)
@@ -112,12 +113,14 @@ function lines = time_series(x, varargin)
             % plot viterbi path (if supplied)
             lines(2).ydata = args.mean;
             lines(2).xdata = lines(1).xdata;
+            lines(2).displayname = 'state mean';
             % plot state markers
             for k = 1:K
                 lines(k+2).xdata = lines(2).xdata(args.state==k);
                 lines(k+2).ydata = lines(2).ydata(args.state==k);
                 lines(k+2).marker = 'o';
                 lines(k+2).linestyle = 'none';
+                lines(k+2).displayname = sprintf('state %d', k);
                 if isfield(lines, 'color')
                     lines(k+2).markerfacecolor = lines(k+2).color;
                 end
