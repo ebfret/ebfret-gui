@@ -142,12 +142,11 @@ function refresh(self, panel, index)
                         1e-2, [0.05, 0.05, 0.05, 0.15]);
                 try
                     set(sph.axes.signal, 'YLim', x_lim);
-                    set(sph.axes.obs, ...
-                        'XLim', x_lim, 'YLim', y_lim, ...
-                        'YTick', linspace(y_lim(1), y_lim(2), 5));
+                    % set(sph.axes.obs, ...
+                    %     'XLim', x_lim, 'YLim', y_lim, ...
+                    %     'YTick', linspace(y_lim(1), y_lim(2), 5));
                     set(eph.axes.obs, ...
-                        'XLim', x_lim, 'YLim', y_lim, ...
-                        'YTick', linspace(y_lim(1), y_lim(2), 5));
+                        'XLim', x_lim, 'YLim', y_lim);
                 catch
                     % copy limits from histogram plot
                     x_lim = get(eph.axes.obs, 'xlim');
@@ -199,8 +198,7 @@ function refresh(self, panel, index)
                             set(eph.axes.(axes{ax}), 'XLim', x_lim);
                         end
                         if all(isfinite(y_lim))
-                            set(eph.axes.(axes{ax}), 'YLim', y_lim, ...
-                                'YTick', linspace(y_lim(1), y_lim(2), 5));
+                            set(eph.axes.(axes{ax}), 'YLim', y_lim);
                         end
                         % update plots
                         set_plots(handles.ensemblePanel, ...
@@ -208,10 +206,14 @@ function refresh(self, panel, index)
                     end
                 end
 
-                % tick label formatting
                 for ax = struct2array(eph.axes)
+                    % x-tick label formatting
                     xtick = get(ax, 'xtick');
                     set(ax, 'xticklabel', ebfret.analysis.num_to_str(xtick));
+                    % y-tick label formatting
+                    ylim = get(ax, 'ylim');
+                    set(ax, 'YTick', linspace(ylim(1), ylim(2), 5));
+                    set(ax, 'YTickLabel', {});
                 end
 
                 % update time series plots
