@@ -60,7 +60,7 @@ function load_data(self, files, ftype)
         end
         self.series = session.series; 
         self.analysis = session.analysis;
-        self.plots = session.plots;
+        % self.plots = session.plots;
         self.set_control(...
             'ensemble', session.controls.ensemble, ...
             'series', session.controls.series);
