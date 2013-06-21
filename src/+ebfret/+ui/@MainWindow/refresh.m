@@ -278,7 +278,11 @@ function refresh(self, panel, index)
                     pargs.color{1} = self.controls.colors.acceptor;
                     acceptor = ebfret.plot.time_series(...
                                     series(n).acceptor, series(n).time, pargs);
-                    plots.series.raw = [donor(1), donor(3:end), acceptor(1), acceptor(3:end)];
+                    if self.controls.show.viterbi
+                        plots.series.raw = [donor(1), donor(3:end), acceptor(1), acceptor(3:end)];
+                    else
+                        plots.series.raw = [donor(:)', acceptor(:)'];
+                    end
                 catch err
                     % simply ignore errors
                     rethrow(err)
