@@ -6,7 +6,7 @@ function theta = mode(alpha)
     if transposed
         alpha = alpha';
     end
-    theta = ebfret.analysis.normalize(alpha - 1, 2);
+    theta = ebfret.normalize(alpha - 1, 2);
     k = find(sum(alpha < 1, 2));
     theta(k, :) = nan;
     if transposed

@@ -117,7 +117,7 @@ function refresh(self, panel, index)
                             ebfret.plot.state_stdev(w_a, w_b, ...
                                                     'linestyle', '-', ...
                                                     'color', self.controls.colors.state));
-                    E_tau = -1 ./ log(diag(ebfret.analysis.normalize(mean(w_alpha,3), 2)));
+                    E_tau = -1 ./ log(diag(ebfret.normalize(mean(w_alpha,3), 2)));
                     plots.ensemble.posterior.dwell = ...
                         ebfret.plot.mean(...
                             ebfret.plot.state_dwell(w_alpha, ...
@@ -212,7 +212,7 @@ function refresh(self, panel, index)
                 for ax = struct2array(eph.axes)
                     % x-tick label formatting
                     xtick = get(ax, 'xtick');
-                    set(ax, 'xticklabel', ebfret.analysis.num_to_str(xtick));
+                    set(ax, 'xticklabel', ebfret.num_to_str(xtick));
                     % y-tick label formatting
                     ylim = get(ax, 'ylim');
                     set(ax, 'YTick', linspace(ylim(1), ylim(2), 5));
@@ -290,7 +290,7 @@ function refresh(self, panel, index)
                 % tick label formatting
                 for ax = struct2array(sph.axes)
                     xtick = get(ax, 'xtick');
-                    set(ax, 'xticklabel', ebfret.analysis.num_to_str(xtick));
+                    set(ax, 'xticklabel', ebfret.num_to_str(xtick));
                 end
 
                 % update time series plot

@@ -8,7 +8,7 @@ ip.addParamValue('threshold', 1e-4, @isscalar);
 ip.parse(varargin{:});
 args = ip.Results;
 
-import ebfret.analysis.*;
+%import ebfret.analysis.*;
 
 % do an approximate remap of prior
 if isempty(args.mapping)
@@ -47,8 +47,8 @@ for km = 1:max(args.mapping)
     if ~isempty(k)
         E_z(km, :) = arrayfun(@(e) sum(e.z(k)), expect(ns));
         E_z1(km, :) = arrayfun(@(e) sum(e.z1(k)), expect(ns));
-        E_x(km, :) = arrayfun(@(e) nan2zero(sum(e.x(k) .* e.z(k)) ./ sum(e.z(k))), expect(ns));
-        E_xx(km, :) = arrayfun(@(e) nan2zero(sum(e.xx(k) .* e.z(k)) ./ sum(e.z(k))), expect(ns));
+        E_x(km, :) = arrayfun(@(e) ebfret.nan_to_zero(sum(e.x(k) .* e.z(k)) ./ sum(e.z(k))), expect(ns));
+        E_xx(km, :) = arrayfun(@(e) ebfret.nan_to_zero(sum(e.xx(k) .* e.z(k)) ./ sum(e.z(k))), expect(ns));
         for lm = 1:max(args.mapping)
             l = find(args.mapping == lm);
             if ~isempty(l)

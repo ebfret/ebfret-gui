@@ -40,7 +40,7 @@ function u = init_prior(theta, counts)
         % transition matrix
         [v, l] = eig(E_A');
         [void k] = max(diag(l));
-        E_pi = ebfret.analysis.normalize(v(:,k));
+        E_pi = ebfret.normalize(v(:,k));
     else
         E_A = 1;
         E_pi = 1;

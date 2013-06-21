@@ -152,7 +152,7 @@ for it = 1:args.max_iter
     %
     % g(t, k) = px_z(t, k) * pi(k) 
     %           / sum_l px_z(t, l) * theta.pi(l)
-    g = ebfret.analysis.normalize(bsxfun(@times, exp(ln_px_z0), theta.pi(:)'), 2);
+    g = ebfret.normalize(bsxfun(@times, exp(ln_px_z0), theta.pi(:)'), 2);
 
     % Calculate log likelihood
     %
@@ -220,7 +220,7 @@ for it = 1:args.max_iter
     w = ebfret.analysis.dist.normwish.m_step(u, x, g);
 
     % get map values
-    theta.pi = ebfret.analysis.normalize(w.beta);
+    theta.pi = ebfret.normalize(w.beta);
     theta.mu = w.mu;
     theta.Lambda = bsxfun(@times, w.W, w.nu);
 end

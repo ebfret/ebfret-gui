@@ -6,7 +6,7 @@ function theta = mean(alpha)
     if transposed
         alpha = alpha';
     end
-    theta = ebfret.analysis.normalize(alpha, 2);
+    theta = ebfret.normalize(alpha, 2);
     if transposed
         theta = theta';
     end

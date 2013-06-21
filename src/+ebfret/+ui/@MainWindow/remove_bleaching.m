@@ -29,7 +29,7 @@ function remove_bleaching(self, method, thresholds)
                 % remove photobleaching using manual thresholds
                 W = 7;
                 W0 = floor(W/2);
-                kernel = ebfret.analysis.normalize(exp(-linspace(-1.5,1.5,W).^2));
+                kernel = ebfret.normalize(exp(-linspace(-1.5,1.5,W).^2));
                 excluded = 0;
                 for n = 1:length(self.series)
                     crop_max = length(self.series(n).signal) - self.series(n).crop.min;
