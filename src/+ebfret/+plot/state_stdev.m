@@ -34,6 +34,7 @@ function lines = state_stdev(a, b, varargin)
     ip.KeepUnmatched = true;
     ip.addParamValue('labels', {}, @iscell);       
     ip.parse(varargin{:});
+    args = ip.Results;
 
     args = ip.Results;
     K = size(a,1);
