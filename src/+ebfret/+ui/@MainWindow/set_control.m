@@ -7,6 +7,7 @@ function set_control(self, varargin)
     control_names = fieldnames(controls);
     known_names = {'series', ...
                    'ensemble', ...
+                   'show', ...
                    'redraw', ...
                    'colors', ...
                    'clip', ...
@@ -68,6 +69,56 @@ function set_control(self, varargin)
                      || (self.controls.ensemble.value ~= self.handles.ensembleControl.value)
                     self.controls.ensemble.value = self.handles.ensembleControl.value;
                     self.refresh('ensemble');
+                end
+            case 'show'
+                % populate default entries if not specified
+                if ~isfield(self.controls, 'show')
+                    self.controls.show = struct();
+                end
+                items = fieldnames(self.handles.menu.show);
+                for it = 1:length(items)
+                    if ~isfield(self.controls.show, items{it})
+                        self.controls.show.items{it} = nan;
+                    end
+                    if ~isfield(controls.show, items{it})
+                        controls.show.(items{it}) = true;
+                    end
+                end               
+                % enable / disable view controls
+                if length(self.series)
+                    state = 'on';
+                else
+                    state = 'off';
+                end
+                for it = 1:length(items)
+                    set(self.handles.menu.show.(items{it}), 'enable', state);
+                end
+                % set controls
+                items = fieldnames(controls.show);                
+                refresh_ensemble = false;
+                refresh_series = false;
+                for it = 1:length(items)
+                    item = items{it};
+                    if controls.show.(item)
+                        set(self.handles.menu.show.(item), 'checked', 'on');
+                    else
+                        set(self.handles.menu.show.(item), 'checked', 'off');
+                    end
+                    if self.controls.show.(item) ~= controls.show.(item)
+                        switch item
+                            case {'prior', 'posterior'}
+                                refresh_ensemble = true;
+                            case {'viterbi', 'raw'}
+                                refresh_series = true;
+                        end    
+                    end
+                    self.controls.show.(item) = controls.show.(item);
+                end
+                if refresh_ensemble
+                    self.refresh('ensemble');
+                end
+                if refresh_series
+                    self.refresh('series');
                 end
             case 'crop'
                 if length(self.series) > 0

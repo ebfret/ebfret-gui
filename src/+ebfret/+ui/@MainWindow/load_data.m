@@ -153,6 +153,10 @@ function load_data(self, files, ftype)
         self.set_control('ensemble', struct('value', self.controls.min_states));
         delete(dlg);
     end
+    % this is to ensure analysis does not start immediately
     self.set_control('run_analysis', false);
+    % this updates enabled/disabled status of the controls in the view menu
+    self.set_control('show', struct());
+    % this does a replot for good measure
     self.refresh('ensemble', 'series');
 end
