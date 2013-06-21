@@ -1,4 +1,4 @@
-function [method, params] = remove_bleaching_dlg()
+function [method, params] = remove_bleaching()
     % global status;
     status = 0;
     self.dialog = dialog('name', 'Remove Photo-bleaching', ...

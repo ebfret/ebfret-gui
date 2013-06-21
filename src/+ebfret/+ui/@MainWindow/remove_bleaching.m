@@ -1,7 +1,7 @@
 function remove_bleaching(self, method, thresholds)
     if length(self.series) > 0
         if nargin < 2
-            [method, thresholds] = ebfret.ui.remove_bleaching_dlg();
+            [method, thresholds] = ebfret.ui.dialog.remove_bleaching();
         end
         switch method
             case 1
