@@ -30,8 +30,8 @@ function reset_analysis(self, num_states)
 
             % get limits from histogram counts
             [h b] = hist(x, linspace(left(end), right(end), min(200, length(x)/10)));
-            x_min = b(find(h > 0.01 * max(h), 1, 'first'));
-            x_max = b(find(h > 0.01 * max(h), 1, 'last'));
+            x_min = max(b(find(h > 0.01 * max(h), 1, 'first')), left(end));
+            x_max = min(b(find(h > 0.01 * max(h), 1, 'last')), right(end));
 
             % pick state means to observation mean and variance
             mu = linspace(x_min, x_max, k+2);
