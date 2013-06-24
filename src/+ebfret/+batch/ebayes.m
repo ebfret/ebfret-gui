@@ -83,21 +83,20 @@ function [analysis, options] = ebayes(series, options, clip)
         analysis(o).posterior = analysis(o).prior([]);
         while true
             % run variational bayes on each time series
-            [posterior, expect, lowerbound, viterbi] = ...
+            [posterior, expect, lowerbound] = ...
                 ebfret.batch.vbayes(x, analysis(o).prior, ...
                     'posterior', analysis(o).posterior, opt.vb);
             ns = find(~[series.exclude]);
             analysis(o).posterior(ns) = posterior;
             analysis(o).expect(ns) = expect;
             analysis(o).lowerbound(ns) = lowerbound;
-            analysis(o).viterbi(ns) = viterbi;
 
             % calculate and print out sum lower bound
             L(it) = sum(analysis(o).lowerbound);
             if it == 1
-                fprintf('it %02d   L %.5e\n', it, L(it))
+                fprintf('K%02d    it %02d   L %.5e\n', K, it, L(it))
             else
-                fprintf('it %02d   L %.5e    dL %.2e\n', it, L(it), (L(it)-L(it-1)) / abs(L(it)));
+                fprintf('K%02d    it %02d   L %.5e    dL %.2e\n', K, it, L(it), (L(it)-L(it-1)) / abs(L(it)));
             end
 
             % check if max iterations reached
@@ -121,9 +120,16 @@ function [analysis, options] = ebayes(series, options, clip)
             % increment iteration counter
             it = it + 1;
         end
-        opt.L = L;
+
+        % calculate viterbi paths
+        ns = find(~[series.exclude]);
+        for n = ns
+            [analysis(o).viterbi(n).state, analysis(o).viterbi(n).mean] = ...
+                ebfret.analysis.hmm.viterbi_vb(analysis(o).posterior(n), x{n});
+        end
 
         % store 
+        opt.L = L;
         opts(o) = opt;
     end
     analysis = reshape(analysis, size(options));

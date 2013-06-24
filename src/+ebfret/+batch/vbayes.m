@@ -1,4 +1,4 @@
-function [posterior, expect, lowerbound, viterbi, restart] = vbayes(x, prior, varargin)
+function [posterior, expect, lowerbound, restart] = vbayes(x, prior, varargin)
     % analysis = ebayes(series, varargin)
     %
     % Run empirical bayes analysis batch job
@@ -74,10 +74,6 @@ function [posterior, expect, lowerbound, viterbi, restart] = vbayes(x, prior, va
             expect{n}.zz = squeeze(sum(vb(r_max).E.xi, 1));
             expect{n}.x = vb(r_max).E.xmean(:);
             expect{n}.xx = vb(r_max).E.xvar + vb(r_max).E.xmean.^2;
-
-            % calculate viterbi path
-            [viterbi{n}.state, viterbi{n}.mean] = ...
-                ebfret.analysis.hmm.viterbi_vb(vb(r_max).w, x{n});
         else
             posterior{n} = [];
             expect{n} = [];
