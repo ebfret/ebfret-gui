@@ -6,8 +6,6 @@ function D_kl = kl_hmm(w, u)
     %   D_kl(q(theta) || p(theta)) = D_kl(q(mu, l) || p(mu, l)) 
     %                                + D_kl(q(A) || p(A)) 
     %                                + D_kl(q(pi) || p(pi))
-    % get dimensions
-    [K D] = size(w.mu);
 
     % D_kl(q(pi) || p(pi)) = sum_l (w.pi(l) - u.pi(l)) 
     %                              (psi(w.pi(l)) - psi(u.pi(l)))
