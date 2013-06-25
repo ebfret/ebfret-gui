@@ -26,6 +26,8 @@ function reset_posterior(self, analysis_index, series_index)
                     self.analysis(a).posterior(n).(fields{f}) = [];
                 end
             end
+            % clear lower bound
+            self.analysis(a).lowerbound(n) = 0;
             % clear viterbi path
             self.analysis(a).viterbi(n).state = [];
             self.analysis(a).viterbi(n).mean = [];

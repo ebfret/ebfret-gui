@@ -65,7 +65,8 @@ function run_ebayes(self, varargin)
                 'threshold', self.controls.run_precision, ...
                 'max_iter', args.max_iter);
 
-            L(it) = sum(self.analysis(a).lowerbound);
+            ns = find(~[self.series.exclude]);
+            L(it) = sum(self.analysis(a).lowerbound(ns));
             if it == 1
                 fprintf('it %02d   L %.5e\n', it, L(it))
             else
