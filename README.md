@@ -1,7 +1,9 @@
 ebfret-gui
 ==========
 
-This repository contains a reorganized version of the ebfret-legacy code, that has been designed to interact with a graphical user interface (GUI).
+This repository contains a reorganized version of the ebfret-legacy code, that has been designed to interact with a graphical user interface (GUI). 
+
+ebFRET is currently beta software. Please report any bugs at https://github.com/ebfret/ebfret-gui/issues 
 
 
 Installing ebFRET
