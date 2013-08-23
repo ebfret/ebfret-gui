@@ -77,12 +77,22 @@ function load_data(self, files, ftype)
                 [void name] = fileparts(files{f});
                 waitbar((f-1)/(length(files)-1), dlg, ebfret.escape_tex(name));
                 if (ftype == 2)
-                    [dons{f} accs{f} labels{f}] = ...
-                        ebfret.data.fret.load_raw(files{f}, 'has_labels', true);
+                    try
+                        [dons{f} accs{f} labels{f}] = ...
+                            ebfret.data.fret.load_raw(files{f}, 'has_labels', true);
+                    catch err
+                        error('ebfret:load_data:wrong_format', ...
+                              'File "%s" could not be loaded as Raw data. Type "help ebfret.data.load_raw" for a description of supported formats.', files{f});
+                    end
                 elseif (ftype == 3)
-                    [dons{f} accs{f}] = ...
-                        ebfret.data.fret.load_sf_tracer(files{f});
-                    labels{f} = 1:length(dons{f});
+                    try
+                        [dons{f} accs{f}] = ...
+                            ebfret.data.fret.load_sf_tracer(files{f});
+                        labels{f} = 1:length(dons{f});
+                    catch err
+                        error('ebfret:load_data:wrong_format', ...
+                              'File "%s" could not be loaded as SF-Tracer data.', files{f});
+                    end
                 end
                 if cancelled
                     return
@@ -151,7 +161,8 @@ function load_data(self, files, ftype)
                             'max', length(self.series), ...
                             'value', 1));
             self.set_control('ensemble', struct('value', self.controls.min_states));
-        catch
+        catch err
+            err_dlg = errordlg(err.message);
         end
         delete(dlg);
     end
