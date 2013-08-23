@@ -419,7 +419,8 @@ classdef MainWindow < hgsetget
             self.controls.redraw.series.last = tic();
 
             % view settings
-            self.controls.show.raw = true;
+            % self.controls.show.signal = true;
+            % self.controls.show.raw = true;
             self.controls.show.viterbi = true;
             self.controls.show.prior = true;
             self.controls.show.posterior = true;
