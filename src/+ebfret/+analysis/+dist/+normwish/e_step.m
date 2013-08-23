@@ -7,7 +7,7 @@ function E_ln_px_z = e_step(w, x)
     [K D] = size(w.mu);
 
     % Expectation of log emission precision |Lambda| 
-    % under q(W | w.W) (CB 10.65, JKC 44)
+    % under q(L | w.W, w.nu) (CB 10.65, JKC 44)
     %
     % E_ln_det_L(k)  =  E[ln(|Lambda(k)|)]
     %                =  ln(|w.W|) + D ln(2) 
@@ -19,7 +19,7 @@ function E_ln_px_z = e_step(w, x)
                           sum(psi(0.5 * (w.nu(k) + 1 - (1:D))), 2);
         end
     else
-        E_ln_det_L = log(w.W) + log(2) + psi(0.5 * w.nu);
+        E_ln_det_L = log(2 * w.W) + psi(0.5 * w.nu);
     end 
 
     % replicate w.nu w.beta w.W, and E_ln_det_L if necessary
