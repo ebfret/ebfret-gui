@@ -3,6 +3,10 @@ function clip_outliers(self, x_lim, max_outliers)
         dlg = ...
             inputdlg({'Clip at Minimum:', 'Clip at Maximum:', 'Exclude when number of Outliers exceeds:'}, ...
                 'Select Range', 1, {'-0.2', '1.2', '10'});
+        % return if user hit cancel
+        if isempty(dlg)
+            return
+        end
         x_lim = [str2num(dlg{1}) str2num(dlg{2})];
         max_outliers = str2num(dlg{3});
     end
