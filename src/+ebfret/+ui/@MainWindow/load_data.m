@@ -69,88 +69,90 @@ function load_data(self, files, ftype)
     end
 
     if (ftype == 2) || (ftype == 3)
-        dlg = waitbar(0,'Loading','Name','Loading datasets', ...
-                      'CreateCancelBtn', 'cancelled = true', ...
-                      'Interpreter', 'none');
-        % set(dlg,'DefaultTextInterpreter','none');
-        for f = 1:length(files)
-            [void name] = fileparts(files{f});
-            waitbar((f-1)/(length(files)-1), dlg, ebfret.escape_tex(name));
-            if (ftype == 2)
-                [dons{f} accs{f} labels{f}] = ...
-                    ebfret.data.fret.load_raw(files{f}, 'has_labels', true);
-            elseif (ftype == 3)
-                [dons{f} accs{f}] = ...
-                    ebfret.data.fret.load_sf_tracer(files{f});
-                labels{f} = 1:length(dons{f});
+        dlg = waitbar(0, 'Loading', 'Name', 'Loading datasets', ...
+                         'CreateCancelBtn', 'cancelled = true', ...
+                         'Interpreter', 'none');
+        try 
+            for f = 1:length(files)
+                [void name] = fileparts(files{f});
+                waitbar((f-1)/(length(files)-1), dlg, ebfret.escape_tex(name));
+                if (ftype == 2)
+                    [dons{f} accs{f} labels{f}] = ...
+                        ebfret.data.fret.load_raw(files{f}, 'has_labels', true);
+                elseif (ftype == 3)
+                    [dons{f} accs{f}] = ...
+                        ebfret.data.fret.load_sf_tracer(files{f});
+                    labels{f} = 1:length(dons{f});
+                end
+                if cancelled
+                    return
+                end
             end
-            if cancelled
-                return
-            end
-        end
 
-        waitbar((f-1)/(length(files)-1), dlg, ...
-            ebfret.escape_tex(...
-                sprintf('Read %d time series from %d files', ...
-                    sum(cellfun(@length, labels)), length(files))));
+            waitbar((f-1)/(length(files)-1), dlg, ...
+                ebfret.escape_tex(...
+                    sprintf('Read %d time series from %d files', ...
+                        sum(cellfun(@length, labels)), length(files))));
 
-        if ~append
-            self.series = struct([]);
-            group = 'group 1';
-        else
-            num_groups = length(unique({self.series.group}));
-            group = sprintf('group %d', num_groups+1);
-        end
-        for f = 1:length(files)
-            % strip empty time series
-            ns = find(~(cellfun(@isempty, dons{f})) & ~(cellfun(@isempty, accs{f})));
-            don = {dons{f}{ns}};
-            acc = {accs{f}{ns}};
-            label = labels{f}(ns);
-
-            % format labels as string
-            label = arrayfun(...
-                        @(l) sprintf('%d', l), label, ...
-                        'UniformOutput', false);
-
-            % initialize series struct
-            series = struct('file', {}, ...
-                            'label', {}, ...
-                            'group', {}, ...
-                            'time', {}, ...
-                            'signal', {}, ...
-                            'donor', {}, ...
-                            'acceptor', {}, ...
-                            'crop', {}, ...
-                            'exclude', {});
-            
-            for n = 1:length(don)
-                [void series(n).file] = fileparts(files{f});
-                series(n).label = label{n};
-                series(n).group = group;
-                series(n).donor = don{n}(:);
-                series(n).acceptor = acc{n}(:);
-                series(n).time = (1:length(series(n).donor))';
-                series(n).signal = (series(n).acceptor + eps) ...
-                                    ./ (series(n).acceptor + series(n).donor + eps);
-                series(n).exclude = false;
-                series(n).crop.min = 1;
-                series(n).crop.max = length(series(n).time);
-            end
-            if isempty(self.series)
-                self.series = series;
+            if ~append
+                self.series = struct([]);
+                group = 'group 1';
             else
-                self.series = cat(1, self.series(:), series(:));
+                num_groups = length(unique({self.series.group}));
+                group = sprintf('group %d', num_groups+1);
             end
-        end
+            for f = 1:length(files)
+                % strip empty time series
+                ns = find(~(cellfun(@isempty, dons{f})) & ~(cellfun(@isempty, accs{f})));
+                don = {dons{f}{ns}};
+                acc = {accs{f}{ns}};
+                label = labels{f}(ns);
 
-        self.reset_analysis(self.controls.min_states:self.controls.max_states);
-        self.set_control(...
-            'series', struct(...
-                        'min', 1, ...
-                        'max', length(self.series), ...
-                        'value', 1));
-        self.set_control('ensemble', struct('value', self.controls.min_states));
+                % format labels as string
+                label = arrayfun(...
+                            @(l) sprintf('%d', l), label, ...
+                            'UniformOutput', false);
+
+                % initialize series struct
+                series = struct('file', {}, ...
+                                'label', {}, ...
+                                'group', {}, ...
+                                'time', {}, ...
+                                'signal', {}, ...
+                                'donor', {}, ...
+                                'acceptor', {}, ...
+                                'crop', {}, ...
+                                'exclude', {});
+                
+                for n = 1:length(don)
+                    [void series(n).file] = fileparts(files{f});
+                    series(n).label = label{n};
+                    series(n).group = group;
+                    series(n).donor = don{n}(:);
+                    series(n).acceptor = acc{n}(:);
+                    series(n).time = (1:length(series(n).donor))';
+                    series(n).signal = (series(n).acceptor + eps) ...
+                                        ./ (series(n).acceptor + series(n).donor + eps);
+                    series(n).exclude = false;
+                    series(n).crop.min = 1;
+                    series(n).crop.max = length(series(n).time);
+                end
+                if isempty(self.series)
+                    self.series = series;
+                else
+                    self.series = cat(1, self.series(:), series(:));
+                end
+            end
+
+            self.reset_analysis(self.controls.min_states:self.controls.max_states);
+            self.set_control(...
+                'series', struct(...
+                            'min', 1, ...
+                            'max', length(self.series), ...
+                            'value', 1));
+            self.set_control('ensemble', struct('value', self.controls.min_states));
+        catch
+        end
         delete(dlg);
     end
     % this is to ensure analysis does not start immediately
