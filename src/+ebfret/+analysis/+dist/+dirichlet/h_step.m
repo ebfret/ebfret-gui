@@ -95,9 +95,10 @@ while true
     dalpha = bsxfun(@minus, g, b) ./ q;
     % set constraint: alpha + dalpha >= 1e-3 alpha
     delta = min(min((1 - 1e-3) * alpha ./ dalpha, 1) .* (dalpha > 0) + (dalpha <= 0), [], 2);
+
     delta(find(~sum(dalpha,2)), :) = 0;
     % break if converged
-    if (max(abs(dalpha(:)) ./ alpha(:)) < args.threshold)
+    if (max(abs(dalpha(:)) ./ (alpha(:)+eps)) < args.threshold)
         break
     end
     % break if maximum iterations reached
