@@ -211,7 +211,9 @@ function refresh(self, panel, index)
                     end
                 end
 
-                for ax = struct2array(eph.axes)
+                axes = struct2cell(eph.axes);
+                axes = [axes{:}];
+                for ax = axes
                     % x-tick label formatting
                     xtick = get(ax, 'xtick');
                     set(ax, 'xticklabel', ebfret.num_to_str(xtick));
@@ -296,7 +298,9 @@ function refresh(self, panel, index)
                 set(sph.axes.raw, 'XLim', [t_min, t_max]);
 
                 % tick label formatting
-                for ax = struct2array(sph.axes)
+                axes = struct2cell(sph.axes);
+                axes = [axes{:}];
+                for ax = axes
                     xtick = get(ax, 'xtick');
                     set(ax, 'xticklabel', ebfret.num_to_str(xtick));
                 end
