@@ -47,6 +47,9 @@ for km = 1:max(args.mapping)
     if ~isempty(k)
         E_z(km, :) = arrayfun(@(e) sum(e.z(k)), expect(ns));
         E_z1(km, :) = arrayfun(@(e) sum(e.z1(k)), expect(ns));
+        if isfield(expect, 'zT')
+            E_zT(km, :) = arrayfun(@(e) sum(e.zT(k)), expect(ns));
+        end
         E_x(km, :) = arrayfun(@(e) ebfret.nan_to_zero(sum(e.x(k) .* e.z(k)) ./ sum(e.z(k))), expect(ns));
         E_xx(km, :) = arrayfun(@(e) ebfret.nan_to_zero(sum(e.xx(k) .* e.z(k)) ./ sum(e.z(k))), expect(ns));
         for lm = 1:max(args.mapping)
@@ -64,6 +67,9 @@ E_xx = E_xx(msk, :);
 E_z1 = E_z1(msk, :);
 E_zz = E_zz(msk, msk, :);
 V_x = E_xx - E_x.^2;
+if isfield(expect, 'zT')
+    E_zT = E_zT(msk, :);
+end
 
 u_old = u;
 it = 1;
@@ -142,10 +148,19 @@ w(ns) = w;
 % reformat expecation values
 fields = fieldnames(expect);
 [K N] = size(E_x);
-expect = struct('x', reshape(mat2cell(E_x, K, ones(N,1)), [N 1]), ...
-                'z', reshape(mat2cell(E_z, K, ones(N,1)), [N 1]), ...
-                'z1', reshape(mat2cell(E_z1, K, ones(N,1)), [N 1]), ...
-                'xx', reshape(mat2cell(E_xx, K, ones(N,1)), [N 1]), ...
-                'zz', reshape(mat2cell(E_zz, K, K, ones(N,1)), [N 1]));
+if isfield(expect, 'zT')
+    expect = struct('x', reshape(mat2cell(E_x, K, ones(N,1)), [N 1]), ...
+                    'z', reshape(mat2cell(E_z, K, ones(N,1)), [N 1]), ...
+                    'z1', reshape(mat2cell(E_z1, K, ones(N,1)), [N 1]), ...
+                    'zT', reshape(mat2cell(E_zT, K, ones(N,1)), [N 1]), ...
+                    'xx', reshape(mat2cell(E_xx, K, ones(N,1)), [N 1]), ...
+                    'zz', reshape(mat2cell(E_zz, K, K, ones(N,1)), [N 1]));
+else
+    expect = struct('x', reshape(mat2cell(E_x, K, ones(N,1)), [N 1]), ...
+                    'z', reshape(mat2cell(E_z, K, ones(N,1)), [N 1]), ...
+                    'z1', reshape(mat2cell(E_z1, K, ones(N,1)), [N 1]), ...
+                    'xx', reshape(mat2cell(E_xx, K, ones(N,1)), [N 1]), ...
+                    'zz', reshape(mat2cell(E_zz, K, K, ones(N,1)), [N 1]));
+end
 expect = orderfields(expect, fields);
 expect(ns) = expect;
