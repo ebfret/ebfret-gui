@@ -1,18 +1,17 @@
 function [donor acceptor labels] = load_raw(data_files, varargin)
 % Loads traces from a number of data files into a single dataset.
 %
-% Data must be formatted as a matrix with T rows (time points) and
-% 2N columns (donor/acceptor signal for each trace). Donor signals
-% are assumed to be located on odd columns (:,1:2:end-1), whereas
-% acceptor signals are on even columns (:,2:2:end). 
-%
-%
 % Inputs
 % ------
 %
 % data_files (1xD cell)
 %   Names of datasets to analyse (e.g. {'file1.dat' 'file2.dat'}).
 %   Datasets may have one of two possible formats.
+%
+%   dat : (Tx3 numeric)
+%       dat is formatted as a stacked table with series index on 
+%       the first, donor signal on the second, and acceptor
+%       signal on the 3rd column
 %
 %   dat : (Tx2N numeric)
 %       dat is formatted as a matrix with donor signals on odd columns
@@ -80,7 +79,14 @@ for d = 1:length(data_files)
     % check if data is in matrix format
     if isnumeric(dat)
         % convert data into cell array
-        raw_data = mat2cell(dat, size(dat,1), 2 * ones(size(dat,2) / 2, 1));
+        if size(dat, 2) == 3
+            ns = dat(:,1);
+            for n = unique(ns(:)')
+                raw_data{n} = dat(find(n == ns), 2:3);
+            end
+        else 
+            raw_data = mat2cell(dat, size(dat,1), 2 * ones(size(dat,2) / 2, 1));
+        end
     else
         % assume a cell array with dat{n} = [donor, acceptor]
         raw_data = dat;
@@ -90,22 +96,31 @@ for d = 1:length(data_files)
         % get trace
         rw = raw_data{n};
 
-        % strip labels if necessary
-        if args.has_labels
-            labels(n,1) = rw(1, 1);
-            rw = rw(2:end, :);
+        if ~isempty(rw)
+            % strip labels if necessary
+            if args.has_labels
+                labels(n,1) = rw(1, 1);
+                rw = rw(2:end, :);
+            else
+                labels(n,1) = n;
+            end
+
+            % strip first point (often bad data)
+            if args.strip_first
+                rw = rw(2:end, :);
+            end
+
+            % store trace again
+            raw_data{n} = rw;
         else
-            labels(n,1) = n;
+            labels(n,1) = nan;
         end
-
-        % strip first point (often bad data)
-        if args.strip_first
-            rw = rw(2:end, :);
-        end
-
-        % store trace again
-        raw_data{n} = rw;
     end
+
+    % strip empty traces
+    n = find(~cellfun(@isempty, raw_data));
+    raw_data = raw_data(n);
+    labels = labels(n);
 
     % store raw data in output
     data(d).donor = cellfun(@(rd) rd(:,1), raw_data, 'UniformOutput', false);
