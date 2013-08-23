@@ -35,7 +35,7 @@ function [method, params] = remove_bleaching()
     self.methodPopup ...
         = uicontrol(self.dialog, ...
             'style', 'popup', ...
-            'string', 'Auto|Manual', ...
+            'string', 'Manual|Auto', ...
             'callback', @(varargin) methodPopupCallback(), ...
             'position', [bw+2*hp 6*bh+7*vp bw bh]);
     self.donCheck ...
@@ -121,7 +121,7 @@ function [method, params] = remove_bleaching()
         end
         vars = {'don', 'acc', 'fret', 'sum', 'pad'};
         switch value 
-            case 2
+            case 1
                 for v = 1:length(vars)
                     checkfld = sprintf('%sCheck', vars{v});
                     set(self.(checkfld), 'enable', 'on');
@@ -157,7 +157,7 @@ function [method, params] = remove_bleaching()
         uiresume();
     end
 
-    methodPopupCallback(0);
+    methodPopupCallback(1);
     uiwait(self.dialog);
     if status 
         method = get(self.methodPopup, 'value');
