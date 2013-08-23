@@ -49,11 +49,12 @@ function run_ebayes(self, varargin)
         it = 1;
         while true
             % determine number of restarts to be used in vbayes analysis
-            if it == 1
-                num_restarts = self.controls.init_restarts;
-            else
-                num_restarts = self.controls.all_restarts;
-            end
+            num_restarts = self.controls.restarts;
+            % if it == 1
+            %     num_restarts = self.controls.init_restarts;
+            % else
+            %     num_restarts = self.controls.all_restarts;
+            % end
 
             eb_interval = round(0.1 * length(self.series));
             eb_last = 0;

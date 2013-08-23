@@ -32,6 +32,7 @@ classdef IndexControl < hgsetget
             ip.addParamValue('min', 0, @isscalar);
             ip.addParamValue('max', 0, @isscalar);
             ip.addParamValue('value', 0, @isscalar);
+            ip.addParamValue('title', '', @isstr);
             ip.parse(varargin{:});
             args = ip.Results;
 
@@ -45,13 +46,14 @@ classdef IndexControl < hgsetget
                 = uipanel('parent', args.parent, ...
                           'backGroundColor', [0.95 0.95 0.95], ...
                           'position', args.position, ...
-                          'units', args.units);
+                          'units', args.units, ...
+                          'title', args.title);
 
             % horizontal and vertical padding, slider height (normalized units)
             pos = getpixelposition(handles.panel);
             hp = 4 / pos(3);
-            vp = 4 / pos(4);
-            sh = 22 / pos(4);
+            vp = 1 / pos(4);
+            sh = 28 / pos(4);
 
             % intialize control elements in frame: 
             % text edit, slider, prev & next buttons
