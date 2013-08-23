@@ -68,7 +68,7 @@ function [posterior, expect, lowerbound, restart] = vbayes(x, prior, varargin)
             posterior{n} = vb(r_max).w;
             restart{n} = r_max + args.restarts - length(w0);
 
-            % remap expectated statistics
+            % remap expected statistics
             expect{n}.z = sum(vb(r_max).E.gamma(2:end,:),1)';
             expect{n}.z1 = vb(r_max).E.gamma(1,:)';
             expect{n}.zz = squeeze(sum(vb(r_max).E.xi, 1));
