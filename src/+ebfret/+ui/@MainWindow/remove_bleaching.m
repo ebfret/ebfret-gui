@@ -4,7 +4,7 @@ function remove_bleaching(self, method, thresholds)
             [method, thresholds] = ebfret.ui.dialog.remove_bleaching();
         end
         switch method
-            case 1
+            case 2
                 % remove photobleaching using auto-detected bleaching point
                 for n = 1:length(self.series)
                     if ~isempty(self.series(n).donor) && ~isempty(self.series(n).acceptor)
@@ -25,7 +25,7 @@ function remove_bleaching(self, method, thresholds)
                         end
                     end
                 end
-            case 2 
+            case 1 
                 % remove photobleaching using manual thresholds
                 W = 7;
                 W0 = floor(W/2);
