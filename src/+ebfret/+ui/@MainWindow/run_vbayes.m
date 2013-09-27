@@ -66,7 +66,7 @@ function run_vbayes(self, varargin)
             lowerbound = {};
             restart = {};
             % parallel loop over batch of traces
-            parfor n = ns
+            for n = ns
                 if ~isempty(x{n})
                     % construct initial guesses for posterior parameters
                     w0 = u([]);
