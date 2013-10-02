@@ -54,7 +54,12 @@ function [z_hat x_hat] = viterbi_vb(w, x)
 [E_ln_pi, E_ln_A, E_ln_px_z] = ebfret.analysis.hmm.e_step(w, x);
 
 % calculate viterbi paths
-z_hat = ebfret.analysis.hmm.viterbi(E_ln_px_z, E_ln_A, E_ln_pi);
-
+try
+    z_hat = ebfret.analysis.hmm.viterbi(E_ln_px_z, E_ln_A, E_ln_pi);
+catch
+    warning('viterbivb:mexvitfailed', ...
+            'Could not execute MEX function viterbi, reverting to native matlab fallback.')
+    z_hat = ebfret.analysis.hmm.viterbi_native(E_ln_px_z, E_ln_A, E_ln_pi);
+end
 % generate idealized trace
 x_hat = w.mu(z_hat, :);

@@ -23,6 +23,70 @@ function run_ebayes(self, varargin)
             1:length(self.series);
     end
 
+    % test whether compiled forwback can be used
+    try 
+        [g,xi,ln_Z] = ...
+            ebfret.analysis.hmm.forwback(...
+                rand(10,2), ...
+                ebfret.normalize(ones(2,2), 2), ...
+                ebfret.normalize(ones(2,1)));
+    catch 
+        warning('ebfret:forwbackfailed', ...
+                'Could not execute forwback algorithm. Now trying MEX compile. This may take a while.')
+        try
+            % find location of file
+            curpath = pwd();
+            [fpath, fname] = fileparts(which('ebfret.analysis.hmm.forwback'));
+            cd(fpath);
+            % compile using mex
+            mex(sprintf('%s.cpp', fname));
+            % refresh path
+            cd('../../../')
+            rmpath(genpath(pwd()));
+            addpath(genpath(pwd()));
+            % return to original dir
+            cd(curpath)
+            % debug
+            fprintf('%s', which('ebfret.analysis.hmm.forwback'))
+        catch
+            warning('ebfret:forwbackcompilefailed', ...
+                    'Could not compile forwback algorithm. Reverting to non-compiled native Matlab version. Analysis will run as normal, but complete more slowly. Please refer to the README and or manual for instructions on compiling MEX functions.')
+            warning('off', 'vbayes:mexfbfailed');
+        end
+    end
+
+    % test whether compiled viterbi can be used
+    try 
+        [g,xi,ln_Z] = ...
+            ebfret.analysis.hmm.vitrbi(...
+                log(rand(10,2)), ...
+                log(ebfret.normalize(ones(2,2), 2)), ...
+                log(ebfret.normalize(ones(2,1))));
+    catch 
+        warning('ebfret:viterbifailed', ...
+                'Could not execute viterbi algorithm. Now trying MEX compile. This may take a while.')
+        try
+            % find location of file
+            curpath = pwd();
+            [fpath, fname] = fileparts(which('ebfret.analysis.hmm.viterbi'));
+            cd(fpath);
+            % compile using mex
+            mex(sprintf('%s.cpp', fname));
+            % refresh path
+            cd('../../../')
+            rmpath(genpath(pwd()));
+            addpath(genpath(pwd()));
+            % return to original dir
+            cd(curpath)
+        catch
+            warning('ebfret:viterbicompilefailed', ...
+                    'Could not compile viterbi algorithm. Reverting to non-compiled native Matlab version. Analysis will run as normal, but complete more slowly. Please refer to the README and or manual for instructions on compiling MEX functions.')
+
+            warning('off', 'viterbivb:mexvitfailed');
+        end
+    end
+
+
     % ensure gui state to running
     if ~self.controls.run_analysis
         % this is necessary to prevent the next step from 
