@@ -25,8 +25,22 @@ function set_control(self, varargin)
     for c = 1:length(control_names)
         control = control_names{c};
         if ~any(strcmp(control, known_names))
-            error('ebfret.ui.MainWindow:UnkownControl', ...
-                  'Unknown control "%s"', control);
+            switch control
+                case 'init_restarts'
+                    % ignore this setting (deprecated)
+                    continue
+                case 'gmm_restarts'
+                    % ignore this setting (deprecated)
+                    continue
+                case 'all_restarts'
+                    control = 'restarts';
+                    controls.restarts = controls.all_restarts;
+                    controls = rmfield(controls, 'all_restarts');
+                otherwise
+                error('ebfret.ui.MainWindow:UnkownControl', ...
+                      'Unknown control "%s"', control);
+                    
+            end
         end
         % update ui controls as required
         switch control
