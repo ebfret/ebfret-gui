@@ -4,6 +4,8 @@ function [z_hat, z_max, omega] = viterbi(ln_px_z, ln_A, ln_pi)
 % Determines the Viterbi path of most likely states for a time series
 % with emission probabilities px_z.
 %
+% (Implemented in C)
+%
 %
 % Inputs
 % ------

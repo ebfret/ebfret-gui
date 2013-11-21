@@ -52,7 +52,7 @@ function export_viterbi(self, varargin)
 
     switch args.filetype
         case 'dat'
-            save(args.filename, '-ascii', 'data');
+            save(args.filename, '-ascii', 'viterbi');
         case 'mat'
             save(args.filename, 'viterbi');
     end

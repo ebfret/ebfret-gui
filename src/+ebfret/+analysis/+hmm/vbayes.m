@@ -54,6 +54,9 @@ function [w, L, expect] = vbayes(x, w0, u, varargin)
 %      collapse back to the previous state ('spike') or move
 %      to a third state ('intermediate').
 %
+%   use_native_forwback : boolean (default: false)
+%       Use native matlab version of forward backward algorithm
+%       in lieu of MEX function.
 %
 % Outputs
 % -------
@@ -161,6 +164,7 @@ ip.addRequired('w0', @isstruct);
 ip.addRequired('u', @isstruct);
 ip.addParamValue('threshold', 1e-5, @isscalar);
 ip.addParamValue('max_iter', 100, @isscalar);
+ip.addParamValue('use_native_forwback', false, @isscalar);
 ip.addParamValue('ignore', 'none', ...
                  @(s) any(strcmpi(s, {'none', 'spike', 'intermediate', 'all'})));
 ip.parse(x, w0, u, varargin{:});
@@ -202,7 +206,18 @@ for it = 1:args.max_iter
     % NOTE: technically this is part of the M-step, but we will
     % calculate the lower bound L to check for convergence before
     % updating the variational parameters w
-    [g, xi, ln_Z] = hmm.forwback(exp(E_ln_px_z), exp(E_ln_A), exp(E_ln_pi));  
+    if ~args.use_native_forwback
+        try
+            [g, xi, ln_Z] = hmm.forwback(exp(E_ln_px_z), exp(E_ln_A), exp(E_ln_pi));
+        catch
+            warning('vbayes:mexfbfailed', ...
+                    'Could not execute MEX function forwback, reverting to native matlab fallback.')
+            args.use_native_forwback = true;
+            [g, xi, ln_Z] = hmm.forwback_native(exp(E_ln_px_z), exp(E_ln_A), exp(E_ln_pi));
+        end
+    else
+        [g, xi, ln_Z] = hmm.forwback_native(exp(E_ln_px_z), exp(E_ln_A), exp(E_ln_pi));
+    end
 
     % COMPUTE LOWER BOUND L
     %

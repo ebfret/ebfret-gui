@@ -148,7 +148,7 @@ classdef IndexControl < hgsetget
                 self.min  = round(properties.min);
                 set(self.handles.slider, 'min', self.min-eps);
                 if self.max > self.min
-                    set(self.handles.slider, 'sliderstep', [1./(self.max-self.min) 0.1])
+                    set(self.handles.slider, 'sliderstep', [1./(self.max-self.min) 1./(self.max-self.min)])
                 end
                 self.set_prop('value', max(self.value, self.min));
             end
@@ -156,7 +156,7 @@ classdef IndexControl < hgsetget
                 self.max  = round(properties.max);
                 set(self.handles.slider, 'max', self.max+eps);
                 if self.max > self.min
-                    set(self.handles.slider, 'sliderstep', [1./(self.max-self.min) 0.1])
+                    set(self.handles.slider, 'sliderstep', [1./(self.max-self.min) 1./(self.max-self.min)])
                 end
                 self.set_prop('value', min(self.value, self.max));
             end
