@@ -1,5 +1,6 @@
 function close(self)
-    % get rid of ui elements
-    close(self.handles.mainWindow);
-    % get rid of object data structure
+    % close ui elements
+    % (we are assuming matlab deletes dependent ui elements correctly)
+    delete(self.handles.mainWindow);
+    % delete containing class structure
     delete(self);
