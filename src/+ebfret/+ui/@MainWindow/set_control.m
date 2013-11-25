@@ -45,6 +45,9 @@ function set_control(self, varargin)
         % update ui controls as required
         switch control
             case 'series'
+                if isempty(controls.series.value)
+                    controls.series.value = self.controls.series.value;
+                end
                 self.handles.seriesControl.set_prop(controls.series);
                 if ~isfield(self.controls, 'series') ...
                     || (self.controls.series.value ~= self.handles.seriesControl.value)
@@ -63,6 +66,9 @@ function set_control(self, varargin)
                         'value', self.series(n).exclude);
                 end
             case 'ensemble'
+                if isempty(controls.ensemble)
+                    controls.ensemble = self.controls.ensemble;
+                end
                 self.handles.ensembleControl.set_prop(controls.ensemble);
                 if ~isfield(self.controls, 'ensemble') ...
                     || ~isfield(self.controls.ensemble, 'min') ...
@@ -135,10 +141,12 @@ function set_control(self, varargin)
             case 'crop'
                 if length(self.series) > 0
                     n = self.controls.series.value;
-                    if ~isfield(controls.crop, 'min')
+                    if ~isfield(controls.crop, 'min') ...
+                       || isempty(controls.crop.min)
                         controls.crop.min = self.series(n).crop.min;
                     end
-                    if ~isfield(controls.crop, 'max')
+                    if ~isfield(controls.crop, 'max') ...
+                       || isempty(controls.crop.max)
                         controls.crop.max = self.series(n).crop.max;
                     end
                     controls.crop.min = ...
@@ -185,6 +193,9 @@ function set_control(self, varargin)
                     set(self.handles.excludeCheck, 'enable', 'off');
                 end
             case 'min_states'
+                if isempty(controls.min_states)
+                    controls.min_states = self.controls.min_states;
+                end
                 set(self.handles.minStatesEdit, ...
                     'string', sprintf('%d', round(controls.min_states)));
                 % check if new analysis entries need to be populated
@@ -195,6 +206,9 @@ function set_control(self, varargin)
                     self.init_analysis();
                 end
             case 'max_states'
+                if isempty(controls.max_states)
+                    controls.max_states = self.controls.max_states;
+                end
                 set(self.handles.maxStatesEdit, ...
                     'string', sprintf('%d', round(controls.max_states)));
                 % check if new analysis entries need to be populated
@@ -205,6 +219,9 @@ function set_control(self, varargin)
                     self.init_analysis();
                 end
             case 'restarts'
+                if isempty(controls.restarts)
+                    controls.restarts = self.controls.restarts;
+                end
                 self.controls.restarts = controls.restarts;
                 set(self.handles.analysisRestartsEdit, ...
                     'string', sprintf('%d', round(controls.restarts)));
@@ -250,7 +267,9 @@ function set_control(self, varargin)
                 set(self.handles.analysisPopup, ...
                     'value', 2-controls.run_all);
             case 'run_precision'
-                self.controls.run_precision = controls.run_precision;
+                if isempty(controls.run_precision)
+                    controls.run_precision = self.controls.run_precision;
+                end
                 set(self.handles.analysisPrecisionEdit, ...
                     'string', sprintf('%.1e', self.controls.run_precision));
             case 'scale_plots'
