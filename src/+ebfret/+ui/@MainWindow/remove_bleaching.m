@@ -3,34 +3,13 @@ function remove_bleaching(self, method, thresholds)
         if nargin < 2
             [method, thresholds] = ebfret.ui.dialog.remove_bleaching();
         end
+        excluded = 0;
         switch method
-            case 2
-                % remove photobleaching using auto-detected bleaching point
-                for n = 1:length(self.series)
-                    if ~isempty(self.series(n).donor) && ~isempty(self.series(n).acceptor)
-                        id = ebfret.data.fret.photobleach_index(self.series(n).donor);
-                        ia = ebfret.data.fret.photobleach_index(self.series(n).acceptor);
-
-                        % % sanity check: donor bleaching should result in acceptor bleaching
-                        % % but we'll allow a few time points tolerance
-                        % tol = 5;
-                        % if (ia < (id + tol));
-                        %     self.series(n).crop.max = min(ia, id);
-                        % else
-                           %     self.series(n).exclude = true;
-                        % end
-                        self.series(n).crop.max = min(id, ia);
-                        if self.series(n).crop.max <= self.series(n).crop.min
-                             self.series(n).exclude = true;
-                        end
-                    end
-                end
             case 1 
                 % remove photobleaching using manual thresholds
                 W = 7;
                 W0 = floor(W/2);
                 kernel = ebfret.normalize(exp(-linspace(-1.5,1.5,W).^2));
-                excluded = 0;
                 for n = 1:length(self.series)
                     crop_max = length(self.series(n).signal) - self.series(n).crop.min;
                     if ~isnan(thresholds.fret)
@@ -66,6 +45,19 @@ function remove_bleaching(self, method, thresholds)
                     else
                         self.series(n).exclude = true;
                         excluded = excluded + 1;
+                    end
+                end
+            case 2
+                % remove photobleaching using auto-detected bleaching point
+                for n = 1:length(self.series)
+                    if ~isempty(self.series(n).donor) && ~isempty(self.series(n).acceptor)
+                        id = ebfret.data.fret.photobleach_index(self.series(n).donor);
+                        ia = ebfret.data.fret.photobleach_index(self.series(n).acceptor);
+                        self.series(n).crop.max = min(id, ia);
+                        if self.series(n).crop.max <= self.series(n).crop.min
+                             self.series(n).exclude = true;
+                             excluded = excluded + 1;
+                        end
                     end
                 end
             otherwise
