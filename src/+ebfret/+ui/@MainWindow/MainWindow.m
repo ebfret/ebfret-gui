@@ -466,6 +466,9 @@ classdef MainWindow < hgsetget
 
             % check for parfor bug on OS X
             ebfret.check_parfor();
+
+            % print warning for older matlab versions
+            ebfret.check_matlab_version();
         end
 %         refresh_series(self, n);
 %         refresh_ensemble(self, a);
