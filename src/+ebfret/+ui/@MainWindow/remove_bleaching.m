@@ -77,9 +77,12 @@ function remove_bleaching(self, method, thresholds)
                     ''; ...
                     sprintf('Excluded %d out of %d time series from analysis.', excluded, length(self.series))});
         end
-
-        self.reset_posterior(self.controls.min_states:self.controls.max_states);
         self.set_control('crop', struct('max', self.series(self.controls.series.value).crop.max));
+        % reset posteriors
+        self.reset_posterior(self.controls.min_states:self.controls.max_states);
+        % ask to update priors
+        self.update_priors()
+        % update plots
         self.refresh('ensemble', 'series');
     end
 end

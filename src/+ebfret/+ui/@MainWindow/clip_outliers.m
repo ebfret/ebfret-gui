@@ -32,9 +32,9 @@ function clip_outliers(self, x_lim, max_outliers)
                 ''; ...
                 sprintf('Excluded %d out of %d time series from analysis.', removed, length(self.series))});
     end
-    self.reset_analysis(...
-        self.controls.min_states:self.controls.max_states);
-    self.set_control(...
-        'ensemble', self.controls.ensemble, ...
-        'series', self.controls.series);
+    % reset posteriors
+    self.reset_posterior(self.controls.min_states:self.controls.max_states);
+    % ask to update priors
+    self.update_priors()
+    % update plots
     self.refresh('ensemble', 'series');
