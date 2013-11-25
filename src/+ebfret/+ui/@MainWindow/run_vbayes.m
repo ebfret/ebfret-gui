@@ -66,7 +66,7 @@ function run_vbayes(self, varargin)
             lowerbound = {};
             restart = {};
             % parallel loop over batch of traces
-            for n = ns
+            parfor n = ns
                 if ~isempty(x{n})
                     % construct initial guesses for posterior parameters
                     w0 = u([]);
@@ -109,9 +109,9 @@ function run_vbayes(self, varargin)
                     posterior{n} = vb(r_max).w;
                     restart{n} = r_max + args.restarts - length(w0);
 
-                    % remap expectated statistics
-                    expect{n}.z = sum(vb(r_max).E.gamma(2:end,:),1)';
-                    expect{n}.z1 = vb(r_max).E.gamma(1,:)';
+                    % remap expected statistics
+                    expect{n}.z = sum(vb(r_max).E.gamma(2:end,:), 1)';
+                    expect{n}.z1 = vb(r_max).E.gamma(1, :)';
                     expect{n}.zz = squeeze(sum(vb(r_max).E.xi, 1));
                     expect{n}.x = vb(r_max).E.xmean(:);
                     expect{n}.xx = vb(r_max).E.xvar + vb(r_max).E.xmean.^2;

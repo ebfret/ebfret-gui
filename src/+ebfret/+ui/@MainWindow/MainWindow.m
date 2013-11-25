@@ -463,6 +463,9 @@ classdef MainWindow < hgsetget
                 end
                 self.load_data(filenames, filetype);
             end
+
+            % check for parfor bug on OS X
+            ebfret.check_parfor();
         end
 %         refresh_series(self, n);
 %         refresh_ensemble(self, a);
