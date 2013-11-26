@@ -37,15 +37,16 @@ function set_control(self, varargin)
                     controls.restarts = controls.all_restarts;
                     controls = rmfield(controls, 'all_restarts');
                 otherwise
-                error('ebfret.ui.MainWindow:UnkownControl', ...
-                      'Unknown control "%s"', control);
+                    error('ebfret.ui.MainWindow:UnkownControl', ...
+                          'Unknown control "%s"', control);
                     
             end
         end
         % update ui controls as required
         switch control
             case 'series'
-                if isempty(controls.series.value)
+                if isempty(controls.series.value) ...
+                    && isfield(self.controls.series, 'value')
                     controls.series.value = self.controls.series.value;
                 end
                 self.handles.seriesControl.set_prop(controls.series);
@@ -66,7 +67,8 @@ function set_control(self, varargin)
                         'value', self.series(n).exclude);
                 end
             case 'ensemble'
-                if isempty(controls.ensemble)
+                if isempty(controls.ensemble) ...
+                    && isfield(self.controls, 'ensemble')
                     controls.ensemble = self.controls.ensemble;
                 end
                 self.handles.ensembleControl.set_prop(controls.ensemble);
@@ -193,7 +195,8 @@ function set_control(self, varargin)
                     set(self.handles.excludeCheck, 'enable', 'off');
                 end
             case 'min_states'
-                if isempty(controls.min_states)
+                if isempty(controls.min_states) ...
+                    && isfield(self.controls, 'min_states')
                     controls.min_states = self.controls.min_states;
                 end
                 set(self.handles.minStatesEdit, ...
@@ -206,7 +209,8 @@ function set_control(self, varargin)
                     self.init_analysis();
                 end
             case 'max_states'
-                if isempty(controls.max_states)
+                if isempty(controls.max_states) ...
+                    && isfield(self.controls, 'max_states')
                     controls.max_states = self.controls.max_states;
                 end
                 set(self.handles.maxStatesEdit, ...
@@ -219,7 +223,8 @@ function set_control(self, varargin)
                     self.init_analysis();
                 end
             case 'restarts'
-                if isempty(controls.restarts)
+                if isempty(controls.restarts) ...
+                    && isfield(self.controls, 'restarts')
                     controls.restarts = self.controls.restarts;
                 end
                 self.controls.restarts = controls.restarts;
@@ -267,11 +272,13 @@ function set_control(self, varargin)
                 set(self.handles.analysisPopup, ...
                     'value', 2-controls.run_all);
             case 'run_precision'
-                if isempty(controls.run_precision)
+                if isempty(controls.run_precision) ...
+                   && isfield(self.controls, 'run_precision')
                     controls.run_precision = self.controls.run_precision;
                 end
+                self.controls.run_precision = controls.run_precision;
                 set(self.handles.analysisPrecisionEdit, ...
-                    'string', sprintf('%.1e', self.controls.run_precision));
+                    'string', sprintf('%.1e', controls.run_precision));
             case 'scale_plots'
                 if ~isfield(self.controls, 'scale_plots') ...
                     || (self.controls.scale_plots ~= controls.scale_plots)
