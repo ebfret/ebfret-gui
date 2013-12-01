@@ -44,5 +44,5 @@ function export_summary(self, varargin)
                 'labels', args.labels, ...
                 'mapping', args.mapping);
 
-    ebfret.data.report.to_csv(args.filename, report);
+    ebfret.io.write_report(args.filename, report);
 end

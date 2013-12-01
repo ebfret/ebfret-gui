@@ -1,4 +1,4 @@
-function [donor acceptor labels] = load_raw(data_files, varargin)
+function [donor acceptor labels] = load(data_files, varargin)
 % Loads traces from a number of data files into a single dataset.
 %
 % Inputs
@@ -28,7 +28,7 @@ function [donor acceptor labels] = load_raw(data_files, varargin)
 %   If specified, assume data is saved as a matlab file,
 %   with data stored under the specified variable name.
 %
-% 'has_labels' (boolean, default:false)
+% 'has_labels' (boolean, default:true)
 %   Assume first row contains trace labels
 %
 % 'strip_first' (boolean, default:false)

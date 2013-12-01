@@ -79,7 +79,7 @@ function load_data(self, files, ftype)
                 if (ftype == 2)
                     try
                         [dons{f} accs{f} labels{f}] = ...
-                            ebfret.data.fret.load_raw(files{f}, 'has_labels', true);
+                            ebfret.io.load_raw(files{f}, 'has_labels', true);
                     catch err
                         error('ebfret:load_data:wrong_format', ...
                               'File "%s" could not be loaded as Raw data. Type "help ebfret.data.load_raw" for a description of supported formats.', files{f});
@@ -87,7 +87,7 @@ function load_data(self, files, ftype)
                 elseif (ftype == 3)
                     try
                         [dons{f} accs{f}] = ...
-                            ebfret.data.fret.load_sf_tracer(files{f});
+                            ebfret.io.load_sf_tracer(files{f});
                         labels{f} = 1:length(dons{f});
                     catch err
                         error('ebfret:load_data:wrong_format', ...

@@ -36,7 +36,7 @@ function varargout = load_sf_tracer(data_files)
             % molecule index is on 1st column
             % (note that numbering starts at 0)
             n = data(l, 1) + 1;
-            % time series index is on 2nd column
+            % channel index is on 2nd column
             c = data(l, 2) + 1;
             % background intensity is on 4th column
             bg = data(l, 5);

@@ -51,8 +51,8 @@ function remove_bleaching(self, method, thresholds)
                 % remove photobleaching using auto-detected bleaching point
                 for n = 1:length(self.series)
                     if ~isempty(self.series(n).donor) && ~isempty(self.series(n).acceptor)
-                        id = ebfret.data.fret.photobleach_index(self.series(n).donor);
-                        ia = ebfret.data.fret.photobleach_index(self.series(n).acceptor);
+                        id = ebfret.analysis.photobleach_index(self.series(n).donor);
+                        ia = ebfret.analysis.photobleach_index(self.series(n).acceptor);
                         self.series(n).crop.max = min(id, ia);
                         if self.series(n).crop.max <= self.series(n).crop.min
                              self.series(n).exclude = true;
@@ -70,8 +70,6 @@ function remove_bleaching(self, method, thresholds)
                     sprintf('Excluded %d out of %d time series from analysis.', excluded, length(self.series))});
         end
         self.set_control('crop', struct('max', self.series(self.controls.series.value).crop.max));
-        % reset posteriors
-        self.reset_posterior(self.controls.min_states:self.controls.max_states);
         % ask to update priors
         self.update_priors()
         % update plots

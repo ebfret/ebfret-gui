@@ -1,4 +1,4 @@
-function to_csv(filename, report, varargin)
+function write_report(filename, report, varargin)
     ip = inputParser();
     ip.StructExpand = true;
     ip.addParamValue('separator', ',', @isstr);       

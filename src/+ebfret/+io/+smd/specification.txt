@@ -1,0 +1,18 @@
+dataset : struct
+    .id : string
+        Unique identifier for collection of traces (e.g. a hash)
+    .type : 
+        Decriptor for datatype
+    .columns : 1 x D cell
+        column labels, e.g. {'donor', 'acceptor'}, {'fret'}, {'viterbi_state_mean', 'viterbi_state_index'}
+    .attr : struct
+        Dataset level features, such as experimental conditions, description, etc.
+    .data : 1 x N struct
+        .id : string
+            Unique id for trace (e.g.  a hash)
+        .attr : struct
+            Any trace-specific features that are not time series        
+        .index : T x 1 numeric
+            Observation time range
+        .values : T x D numeric
+            Observation signal, with columns matching labels
