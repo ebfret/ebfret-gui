@@ -5,6 +5,7 @@ function [rep par] = report(signal, prior, expect, varargin)
     ip.addRequired('x', @iscell);       
     ip.addRequired('prior', @isstruct);       
     ip.addRequired('expect', @isstruct);       
+    ip.addParamValue('lowerbound', [], @isnumeric);       
     ip.addParamValue('splits', {}, @iscell);       
     ip.addParamValue('labels', {}, @iscell);       
     ip.addParamValue('mapping', [], @isnumeric);       
@@ -46,11 +47,32 @@ function [rep par] = report(signal, prior, expect, varargin)
         par(s).prior = u;
         par(s).posterior(ns) = w;
         par(s).expect(ns) = e;
-        % statistics
+        % statistics of lower bound evidence
+        if ~isempty(args.lowerbound)
+            L = args.lowerbound(ns);
+            L0 = L ./ T;
+            rep(s).Lower_Bound.Label = args.labels{s};
+            rep(s).Lower_Bound.Num_States = sprintf('%d', length(par(s).prior.mu));
+            rep(s).Lower_Bound.per_Series.Mean = mean(L);
+            rep(s).Lower_Bound.per_Series.Std = std(L);
+            rep(s).Lower_Bound.per_Series.Median = median(L);
+            rep(s).Lower_Bound.per_Series.Min = min(L);
+            rep(s).Lower_Bound.per_Series.Max = max(L);
+            rep(s).Lower_Bound.per_Series.Total = sum(L);
+            rep(s).Lower_Bound.per_Observation.Mean = mean(L0);
+            rep(s).Lower_Bound.per_Observation.Std = std(L0);
+            rep(s).Lower_Bound.per_Observation.Median = median(L0);
+            rep(s).Lower_Bound.per_Observation.Min = min(L0);
+            rep(s).Lower_Bound.per_Observation.Max = max(L0);
+            rep(s).Lower_Bound.per_Observation.Total = sum(L0);
+        end
+        % statistics of posterior parameters
         if ~isempty(args.labels)
             rep(s).Statistics.Label = {args.labels{s}};
+            rep(s).Statistics.Num_States = {sprintf('%d', length(par(s).prior.mu))};
             for k = 2:length(u.mu)
                 rep(s).Statistics.Label{k} = '';
+                rep(s).Statistics.Num_States{k} = '';
             end
         end
         rep(s).Statistics.State = (1:length(u.mu))';
@@ -71,8 +93,10 @@ function [rep par] = report(signal, prior, expect, varargin)
         % parameter values
         if ~isempty(args.labels)
             rep(s).Parameters.Label = {args.labels{s}};
+            rep(s).Parameters.Num_States = {sprintf('%d', length(par(s).prior.mu))};
             for k = 2:length(u.mu)
                 rep(s).Parameters.Label{k} = '';
+                rep(s).Parameters.Num_States{k} = '';
             end
         end
         rep(s).Parameters.State = (1:length(u.mu))';

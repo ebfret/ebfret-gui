@@ -48,7 +48,24 @@ function write_report(filename, report, varargin)
             end
         end 
     end 
-    lines = parse(report);
+    function num = count_sep(elem)
+        if isstr(elem)
+            num = length(strfind(elem, args.separator));
+        else
+            num = 0;
+        end
+    end
+    function lines = align_fields(lines)
+        for l = 2:length(lines)
+            for c = 2:length(lines{l})
+                if ~count_sep(lines{l}{c})
+                    n = count_sep(lines{l-1}{c});
+                    lines{l}{c} = repmat(args.separator, [1 n]);
+                end
+            end
+        end
+    end
+    lines = align_fields(parse(report));
     fid = fopen(filename, 'wt');
     for l = 1:length(lines)
         fprintf(fid, sprintf('%s\n', cat(2, lines{l}{:})));

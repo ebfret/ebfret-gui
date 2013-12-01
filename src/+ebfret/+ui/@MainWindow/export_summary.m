@@ -19,7 +19,7 @@ function export_summary(self, varargin)
     end
 
     if isempty(args.analysis)
-        args.analysis = self.analysis(self.controls.ensemble.value);
+        args.analysis = self.analysis(self.controls.ensemble.min:self.controls.ensemble.max);
     end
 
     if isempty(args.splits)
@@ -36,13 +36,21 @@ function export_summary(self, varargin)
         end
     end
 
-    report = ebfret.analysis.hmm.report(...
+    for a = 1:length(args.analysis)
+        rep = ebfret.analysis.hmm.report(...
                 self.get_signal(), ...
-                args.analysis.prior, ...
-                args.analysis.expect, ...
+                args.analysis(a).prior, ...
+                args.analysis(a).expect, ...
+                'lowerbound', args.analysis(a).lowerbound, ...
                 'splits', args.splits, ...
                 'labels', args.labels, ...
                 'mapping', args.mapping);
-
+        if a == 1
+            report = rep;
+        else
+            rep.Series = [];
+            report = cat(1, report(:), rep(:));
+        end
+    end
     ebfret.io.write_report(args.filename, report);
 end
