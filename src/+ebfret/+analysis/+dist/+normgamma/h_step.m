@@ -12,7 +12,7 @@ function [u_m, u_beta, u_a, u_b] = h_step(w_m, w_beta, w_a, w_b, varargin)
 % ------
 %
 % w_m, w_beta, w_a, w_b : [K N]
-%     Normal-Gamma priors for K states and N samples
+%     Normal-Gamma posterior parameters for K states and N samples
 %
 % Outputs
 % -------
