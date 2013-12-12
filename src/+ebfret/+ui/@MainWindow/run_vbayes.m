@@ -104,21 +104,29 @@ function run_vbayes(self, varargin)
                         end
                     end
 
-                    % keep best result
-                    lowerbound{n} = vb(r_max).L(end);
-                    posterior{n} = vb(r_max).w;
-                    restart{n} = r_max + args.restarts - length(w0);
-
-                    % remap expected statistics
-                    expect{n}.z = sum(vb(r_max).E.gamma(2:end,:), 1)';
-                    expect{n}.z1 = vb(r_max).E.gamma(1, :)';
-                    expect{n}.zz = squeeze(sum(vb(r_max).E.xi, 1));
-                    expect{n}.x = vb(r_max).E.xmean(:);
-                    expect{n}.xx = vb(r_max).E.xvar + vb(r_max).E.xmean.^2;
-
-                    % calculate viterbi path
-                    [viterbi{n}.state, viterbi{n}.mean] = ...
-                        ebfret.analysis.hmm.viterbi_vb(vb(r_max).w, x{n});
+                    if ebfret.analysis.hmm.valid_prior(vb(r_max).w)
+                        % keep best result
+                        lowerbound{n} = vb(r_max).L(end);
+                        posterior{n} = vb(r_max).w;
+                        restart{n} = r_max + args.restarts - length(w0);
+                        % calculate viterbi path
+                        [viterbi{n}.state, viterbi{n}.mean] = ...
+                            ebfret.analysis.hmm.viterbi_vb(vb(r_max).w, x{n});
+                        % remap expected statistics
+                        expect{n}.z = sum(vb(r_max).E.gamma(2:end,:), 1)';
+                        expect{n}.z1 = vb(r_max).E.gamma(1, :)';
+                        expect{n}.zz = squeeze(sum(vb(r_max).E.xi, 1));
+                        expect{n}.x = vb(r_max).E.xmean(:);
+                        expect{n}.xx = vb(r_max).E.xvar + vb(r_max).E.xmean.^2;
+                    else
+                        warning('ebFRET:InvalidPosterior', ...
+                                'Unable to obtain a valid VB estimate for time series %d. Resetting posterior.', n);
+                        lowerbound{n} = 0;
+                        posterior{n} = u;
+                        expect{n} = struct('z', [], 'z1', [], 'zz', [], 'x', [], 'xx', []);
+                        viterbi{n} = struct('state', [], 'mean', []);
+                        restart{n} = -1;
+                    end
                 else
                     posterior{n} = [];
                     expect{n} = [];
