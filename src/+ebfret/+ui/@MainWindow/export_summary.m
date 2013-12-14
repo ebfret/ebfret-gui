@@ -48,7 +48,7 @@ function export_summary(self, varargin)
         if a == 1
             report = rep;
         else
-            rep.Series = [];
+            [rep.Series] = deal([]);
             report = cat(1, report(:), rep(:));
         end
     end
