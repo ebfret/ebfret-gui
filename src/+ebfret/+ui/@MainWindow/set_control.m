@@ -283,7 +283,17 @@ function set_control(self, varargin)
                 if ~isfield(self.controls, 'scale_plots') ...
                     || (self.controls.scale_plots ~= controls.scale_plots)
                     self.controls.scale_plots = controls.scale_plots;
+                    if controls.scale_plots
+                        set(self.handles.menu.scale_plots, 'checked', 'on');
+                    else
+                        set(self.handles.menu.scale_plots, 'checked', 'off');
+                    end
                     self.refresh('ensemble', 'series');
+                end
+                if length(self.series)
+                    set(self.handles.menu.scale_plots, 'enable', 'on');
+                else
+                    set(self.handles.menu.scale_plots, 'enable', 'off');
                 end
             otherwise
                 % store control values 

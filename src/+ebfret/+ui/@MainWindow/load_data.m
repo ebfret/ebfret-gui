@@ -170,6 +170,7 @@ function load_data(self, files, ftype)
     self.set_control('run_analysis', false);
     % this updates enabled/disabled status of the controls in the view menu
     self.set_control('show', struct());
+    self.set_control('scale_plots', self.controls.scale_plots);
     % this does a replot for good measure
     self.refresh('ensemble', 'series');
 end
