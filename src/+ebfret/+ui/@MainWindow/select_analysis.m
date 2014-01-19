@@ -4,35 +4,6 @@ function [series, analysis] = select_analysis(parent)
         uiresume();
     end
 
-    % function update(par, field, value)
-    %     if nargin < 1
-    %         pars = fieldnames(values);
-    %         for p = 1:length(pars)
-    %             fields = fieldnames(self.edit.(pars{p}));
-    %             for f = 1:length(fields)
-    %                 update(pars{p}, fields{f}, ...
-    %                     num(pars{p}, fields{f})); 
-    %             end
-    %         end
-    %     else
-    %         values.(par).(field) = value;
-    %     end
-    % end
-
-    % function refresh()
-    %     pars = fieldnames(self.edit);
-    %     for p = 1:length(pars)
-    %         fields = fieldnames(self.edit.(pars{p}));
-    %         for f = 1:length(fields)
-    %             try
-    %                 val = ebfret.num_to_str(values.(pars{p}).(fields{f}));
-    %                 set(self.edit.(pars{p}).(fields{f}), 'string', val{1});
-    %             catch
-    %             end
-    %         end
-    %     end
-    % end 
-
     function value = num(par, field)
         value = str2num(get(self.edit.(par).(field), 'string'));
     end
@@ -127,20 +98,25 @@ function [series, analysis] = select_analysis(parent)
         %methodPopupCallback(0);
         % refresh();
         uiwait(self.dialog);
-        state = states{get(self.popup.analysis, 'value')};
-        analysis = parent.analysis(state);
-        group = groups{get(self.popup.group, 'value')};
-        if strcmpi(group, 'all')
-            series = parent.series;
+        if status
+            state = states{get(self.popup.analysis, 'value')};
+            analysis = parent.analysis(state);
+            group = groups{get(self.popup.group, 'value')};
+            if strcmpi(group, 'all')
+                series = parent.series;
+            else
+                ns = find(arrayfun(@(s) strcmpi(s.group, group), parent.series));
+                series = parent.series(ns);
+                analysis.viterbi = analysis.viterbi(ns);
+                analysis.expect = analysis.expect(ns);
+                analysis.posterior = analysis.posterior(ns);
+                analysis.lowerbound = analysis.lowerbound(ns);
+                analysis.restart = analysis.restart(ns);
+                analysis.prior = ebfret.analysis.hmm.h_step(analysis.posterior, analysis.prior);
+            end
         else
-            ns = find(arrayfun(@(s) strcmpi(s.group, group), parent.series));
-            series = parent.series(ns);
-            analysis.viterbi = analysis.viterbi(ns);
-            analysis.expect = analysis.expect(ns);
-            analysis.posterior = analysis.posterior(ns);
-            analysis.lowerbound = analysis.lowerbound(ns);
-            analysis.restart = analysis.restart(ns);
-            analysis.prior = ebfret.analysis.hmm.h_step(analysis.posterior, analysis.prior);
+            series = struct();
+            analysis = struct();
         end
         delete(self.dialog);
     catch err

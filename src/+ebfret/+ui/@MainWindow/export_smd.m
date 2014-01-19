@@ -33,5 +33,8 @@ function export_smd(self, varargin)
     end
 
     [series, analysis] = self.select_analysis();
-    ebfret.io.write_smd(args.filename, series, analysis, 'format', args.filetype)
+    if isempty(series) || isempty(analysis)
+        return
+    end
+    ebfret.io.write_smd(args.filename, series, analysis, 'format', args.filetype);
 end
