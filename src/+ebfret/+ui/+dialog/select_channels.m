@@ -41,13 +41,7 @@ function channels = select_channels()
         lw = label_width / dialog_width;
 
         ph = pad_height / dialog_height;
-        pw = pad_width  /dialog_width;
-
-        % window_pos = get(gcbo(), 'position');
-        % dialog_pos(1) = min(1, window_pos(1) + round(0.5 * (window_pos(3) - dialog_height)));
-        % dialog_pos(2) = min(1, window_pos(2) + round(0.5 * (window_pos(4) - dialog_width)));
-        % dialog_pos(3) = dialog_height;
-        % dialog_pos(4) = dialog_width;
+        pw = pad_width / dialog_width;
 
         % adjust dialog size
         rect = get(self.dialog, 'position');

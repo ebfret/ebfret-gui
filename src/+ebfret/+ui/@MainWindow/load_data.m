@@ -3,7 +3,10 @@ function load_data(self, files, ftype)
         [fname, fpath, ftype] = ...
             uigetfile({'*.mat', 'ebFRET saved session (.mat)';
                        '*.dat', 'Raw donor-acceptor time series (.dat)';
-                       '*.tsv', 'SF-Tracer donor-acceptor time series (.tsv)';}, ...
+                       '*.tsv', 'SF-Tracer donor-acceptor time series (.tsv)';
+                       '*.mat', 'SMD time series (.mat)';
+                       '*.json', 'SMD time series (.json)';
+                       '*.json.gz', 'SMD time series (.json.gz)';}, ...
                        'multiselect', 'on');
         if (ftype == 0)
             return
@@ -68,7 +71,7 @@ function load_data(self, files, ftype)
             {'ensemble', 'series', 'run_analysis'}));
     end
 
-    if (ftype == 2) || (ftype == 3)
+    if any(ftype == 2:6)
         dlg = waitbar(0, 'Loading', 'Name', 'Loading datasets', ...
                          'CreateCancelBtn', 'cancelled = true', ...
                          'Interpreter', 'none');
@@ -76,7 +79,8 @@ function load_data(self, files, ftype)
             for f = 1:length(files)
                 [void name] = fileparts(files{f});
                 waitbar((f-1)/(length(files)-1), dlg, ebfret.escape_tex(name));
-                if (ftype == 2)
+                switch ftype
+                case 2
                     try
                         [dons{f} accs{f} labels{f}] = ...
                             ebfret.io.load_raw(files{f}, 'has_labels', true);
@@ -84,7 +88,7 @@ function load_data(self, files, ftype)
                         error('ebfret:load_data:wrong_format', ...
                               'File "%s" could not be loaded as Raw data. Type "help ebfret.data.load_raw" for a description of supported formats.', files{f});
                     end
-                elseif (ftype == 3)
+                case 3
                     try
                         [dons{f} accs{f}] = ...
                             ebfret.io.load_sf_tracer(files{f});
@@ -93,16 +97,28 @@ function load_data(self, files, ftype)
                         error('ebfret:load_data:wrong_format', ...
                               'File "%s" could not be loaded as SF-Tracer data.', files{f});
                     end
+                case 4
+                    smd{f} = load(files{f});
+                case 5
+                    smd{f} = ebfret.io.load_json(files{f});
+                case 6
+                    smd{f} = ebfret.io.load_json(files{f}, 'gzip', true);
                 end
                 if cancelled
                     return
                 end
             end
 
+            switch ftype
+            case {2,3}
+                num_series = sum(cellfun(@length, labels));
+            case {4,5,6}
+                num_series = sum(cellfun(@(s) length(s.data), smd));
+            end
             waitbar((f-1)/(length(files)-1), dlg, ...
                 ebfret.escape_tex(...
                     sprintf('Read %d time series from %d files', ...
-                        sum(cellfun(@length, labels)), length(files))));
+                        num_series, length(files))));
 
             if ~append
                 self.series = struct([]);
@@ -112,17 +128,6 @@ function load_data(self, files, ftype)
                 group = sprintf('group %d', num_groups+1);
             end
             for f = 1:length(files)
-                % strip empty time series
-                ns = find(~(cellfun(@isempty, dons{f})) & ~(cellfun(@isempty, accs{f})));
-                don = {dons{f}{ns}};
-                acc = {accs{f}{ns}};
-                label = labels{f}(ns);
-
-                % format labels as string
-                label = arrayfun(...
-                            @(l) sprintf('%d', l), label, ...
-                            'UniformOutput', false);
-
                 % initialize series struct
                 series = struct('file', {}, ...
                                 'label', {}, ...
@@ -133,20 +138,55 @@ function load_data(self, files, ftype)
                                 'acceptor', {}, ...
                                 'crop', {}, ...
                                 'exclude', {});
-                
-                for n = 1:length(don)
-                    [void series(n).file] = fileparts(files{f});
-                    series(n).label = label{n};
-                    series(n).group = group;
-                    series(n).donor = don{n}(:);
-                    series(n).acceptor = acc{n}(:);
-                    series(n).time = (1:length(series(n).donor))';
-                    series(n).signal = (series(n).acceptor + eps) ...
-                                        ./ (series(n).acceptor + series(n).donor + eps);
-                    series(n).exclude = false;
-                    series(n).crop.min = 1;
-                    series(n).crop.max = length(series(n).time);
+
+                switch ftype
+                case {2,3}
+                    % strip empty time series
+                    ns = find(~(cellfun(@isempty, dons{f})) & ~(cellfun(@isempty, accs{f})));
+                    don = {dons{f}{ns}};
+                    acc = {accs{f}{ns}};
+                    label = labels{f}(ns);
+
+                    % format labels as string
+                    label = arrayfun(...
+                                @(l) sprintf('%d', l), label, ...
+                                'UniformOutput', false);
+
+                    
+                    for n = 1:length(don)
+                        [void series(n).file] = fileparts(files{f});
+                        series(n).label = label{n};
+                        series(n).group = group;
+                        series(n).donor = don{n}(:);
+                        series(n).acceptor = acc{n}(:);
+                        series(n).time = (1:length(series(n).donor))';
+                        series(n).signal = (series(n).acceptor + eps) ...
+                                            ./ (series(n).acceptor + series(n).donor + eps);
+                        series(n).crop.min = 1;
+                        series(n).crop.max = length(series(n).time);
+                    end
+                case {4,5,6}
+                    channels = ebfret.ui.dialog.assign_smd_channels(smd{f}.columns);
+                    series = struct([]);
+                    data = smd{f}.data
+                    for n = 1:length(data)
+                        [void series(n).file] = fileparts(files{f});
+                        series(n).label = data(n).id;
+                        series(n).time = data(n).index;
+                        if channels.fret == channels.fret
+                            series(n).donor = zeros(size(data(n).time));
+                            series(n).acceptor = zeros(size(data(n).time));
+                            series(n).signal = data(n).values(:, channels.fret);
+                        else
+                            series(n).donor = data(n).values(:, channels.donor);
+                            series(n).acceptor = data(n).values(:, channels.acceptor);
+                            series(n).signal = (series(n).acceptor + eps) ./ (series(n).acceptor + series(n).donor + eps);
+                        end
+                        series(n).crop.min = 1;
+                        series(n).crop.max = length(series(n).time);
+                    end
                 end
+                [series.exclude] = deal(false);
                 if isempty(self.series)
                     self.series = series;
                 else
@@ -166,6 +206,7 @@ function load_data(self, files, ftype)
         end
         delete(dlg);
     end
+
     % this is to ensure analysis does not start immediately
     self.set_control('run_analysis', false);
     % this updates enabled/disabled status of the controls in the view menu
