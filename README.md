@@ -1,10 +1,16 @@
 ebfret-gui
-==========
+==
 
-This repository contains a reorganized version of the ebfret-legacy code, that has been designed to interact with a graphical user interface (GUI). 
+This repository contains a reorganized version of the ebfret-legacy code, that has been designed to interact with a graphical user interface (GUI). A manual with installation and usage instructions is located at
 
-ebFRET is currently beta software. Please report any bugs at https://github.com/ebfret/ebfret-gui/issues 
+    documentation/ebfret_user_guide.pdf 
 
+This project is open source software. Please report any bugs or feature requests via 
+
+    https://github.com/ebfret/ebfret-gui/issues 
+
+Quick Start Guide
+==
 
 Installing ebFRET
 --
@@ -13,9 +19,9 @@ Installing ebFRET
 
     http://www.microsoft.com/en-us/download/confirmation.aspx?id=14632
 
-2.  Download and unzip the latest version of ebFRET from
+2.  Download ebFRET from
 
-    https://github.com/ebfret/ebfret-gui/archive/master.zip
+    https://github.com/ebfret/ebfret-gui/archive/1.0.zip    
 
 3.  Unzipping will create a folder 'ebfret-gui-master'.
 
@@ -27,7 +33,7 @@ Installing ebFRET
 
 5.  Start the GUI with 
 
-    h = ebfret.ui.MainWindow()
+    ebf = ebFRET()
 
 6.  Optionally, to use multiple processors, you can type the following
 
