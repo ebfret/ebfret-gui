@@ -27,7 +27,7 @@ function write_smd(filename, series, analysis, varargin)
     ip.addRequired('filename', @isstr);
     ip.addRequired('series', @isstruct);
     ip.addRequired('analysis', @isstruct);
-    ip.addParamValue('format', '',  @(s) any(strcmpi(s, {'', 'mat', 'json', 'json.gz'})));
+    ip.addParamValue('format', '',  @(s) any(strcmpi(s, {'', 'mat', 'json', 'gz'})));
     ip.parse(filename, series, analysis, varargin{:});
     args = ip.Results;
     opts = ip.Unmatched;
@@ -38,21 +38,18 @@ function write_smd(filename, series, analysis, varargin)
         args.format = args.format(2:end);
         if ~any(strcmpi(args.format, {'mat', 'json', 'gz'}))
             warning('ebfret:InvalidSMDFormat', ...
-                    'Cannot detect SMD format from file extension. Must be one of {".mat", ".json", ".json.gz"}. Using ".mat".')
+                    'Cannot detect SMD format from file extension. Must be one of {".mat", ".json", ".gz"}. Using ".mat".')
             args.format = 'mat';
-        end
-        if strcmpi(args.format, 'gz')
-            args.format = 'json.gz';
         end
     end
     
     % initialize smd data structure
     smd = struct();
-    smd.type = 'ebFRET_export';
+    smd.type = 'ebFRET_v_1_0_analysis';
     smd.columns = {'donor', 'acceptor', 'fret', 'viterbi_state', 'viterbi_mean'};
 
     % assingn global attributes
-    smn.attr.num_states = analysis.dim;
+    smn.attr.num_states = analysis.dim.states;
     smd.attr.prior_mu = analysis.prior.mu;
     smd.attr.prior_beta = analysis.prior.beta;
     smd.attr.prior_W = analysis.prior.W;
@@ -110,7 +107,7 @@ function write_smd(filename, series, analysis, varargin)
             save(args.filename, '-struct', 'smd');
         case 'json'
             ebfret.io.write_json(filename, smd, 'gzip', false);
-        case 'json.gz'
+        case 'gz'
             ebfret.io.write_json(filename, smd, 'gzip', true);
     end
 
