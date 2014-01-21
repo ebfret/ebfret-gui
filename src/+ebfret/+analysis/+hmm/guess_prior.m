@@ -40,7 +40,7 @@ function u = guess_prior(x, K, spread, strength)
     % assume dwell time is 1/2 of average time series length
     theta.tau = 0.5 * mean(T) * ones(K,1);
     % set counts
-    counts.mu = 0.1 * strength * ones(K,1);
+    counts.mu = 0.025 * strength * ones(K,1);
     counts.lambda = 1 * strength * ones(K,1);
     counts.tau = K * strength * ones(K,1);
 
