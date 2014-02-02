@@ -76,7 +76,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     		z_hat[T-1] = k;
     	}
     }
-    z_hat[T-1];
 
     // remaining timesteps are determined by z_max
     for (t = T-2; t >= 0; t--)
@@ -93,9 +92,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
     	z_hat[t] += 1;
     }
-	return;
 
     // free up memory
     free(z_max);
     free(omega);
+
+	return;
 }
