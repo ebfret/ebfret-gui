@@ -174,8 +174,8 @@ function load_data(self, files, ftype)
                         series(n).label = data(n).id;
                         series(n).time = data(n).index;
                         if channels.fret == channels.fret
-                            series(n).donor = zeros(size(data(n).time));
-                            series(n).acceptor = zeros(size(data(n).time));
+                            series(n).donor = zeros(size(data(n).index));
+                            series(n).acceptor = zeros(size(data(n).index));
                             series(n).signal = data(n).values(:, channels.fret);
                         else
                             series(n).donor = data(n).values(:, channels.donor);
