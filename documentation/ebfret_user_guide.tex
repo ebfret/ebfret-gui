@@ -50,7 +50,7 @@
 
 \begin{document}
 \section*{ebFRET User Guide}
-\subsubsection*{Release 1.0, December 2013}
+\subsubsection*{Release 1.1, May 2014}
 
 \indt\includegraphics[width=5in]{images/ebfret_mainwindow}
 
@@ -207,7 +207,17 @@ This format is used by the SFTracer pre-processing suite for FRET time series, t
     n c area(n) T(n) I0(n,c) I(n,c,1) I(n,c,2) ... I(n,c,T(n))
 \end{verbatim}
 Here \texttt{c} is the index of the color channel. The GUI assumes \texttt{c==0} for the donor signal and \texttt{c==1} for the acceptor signal. \texttt{T(n)} is the number of time points in time series \texttt{n}, and \texttt{I0(n,c)} is the background intensity of channel \texttt{c} for this time series. \texttt{area(n)} holds the surface area of the spot in the source image, which is currently ignored by ebFRET. 
+
+\textbf{\item[4.] Single-molecule Dataset (.json, .json.gz, .mat)}
+
+The single-molecule dataset (SMD) format may be used to import data exported by other smFRET analysis packages, such as SMART\footnote{\url{https://simtk.org/home/smart}}. 
+A SMD file can be read from JSON (\texttt{.json}), gzipped JSON (\texttt{.json.gz}) and Matlab (\texttt{.mat}) formats, and can hold both raw (unanalyzed) data and unanalyzed results. 
+Currently only raw time series can be read from SMD files. 
+We loading SMD, the user may specified whether the stored time series contain \texttt{Donor-Acceptor} or \texttt{FRET} data. 
+For each choice, the user must then select the SMD column names that contain the donor, acceptor, or FRET signals respectively. 
+
 \end{itemize}
+
 
 \subsection{Loading Data from Multiple Files}
 
@@ -333,11 +343,12 @@ A ebFRET session can be saved to a Matlab file at any time via
 
 This can be used to store results and continue analysis at a later time. The Matlab file is also the only format that stores allowable data, including measurement values, settings for clipping, cropping, excluded traces, prior parameters, posterior parameters and viterbi paths. See the \emph{\nameref{sec:advanced}} section for a description of how data and analysis are stored.
 
-\subsubsection{Analysis Summary (.csv)}
+\subsubsection{Export Analysis Summary (.csv)}
 
 A summary of analysis results can be exported with 
 
 \indt\texttt{File} $\to$ \texttt{Export} $\to$ \texttt{"Analysis Summary"}
+\label{sec:summary}
 
 This creates a table in \texttt{.csv} format, which can be read in many other types of software, including Excel. Summary statistics are calculated by averaging over all time series, as well as any groups of time series that are defined. By default, time series in files that were loaded at once using \texttt{File} $\to$ \texttt{Load} are grouped together. In addition summary results are shown for analysis performed with different numbers of states, as well as each state within an analysis run. 
 
@@ -419,23 +430,31 @@ Lists the mean and standard deviation of the transition rates predicted by the E
 
 \end{itemize}
 
+\subsubsection{Export Traces (.dat, .mat)}
 
-\subsubsection{Viterbi Paths (.dat, .mat)}
+Time series may be exported via \texttt{File} $\to$ \texttt{Export} $\to$ \texttt{"Traces"}, and can be stored in either an ASCII (.dat) or Matlab (.mat) format. 
+The data stored is the index \texttt{n} of the time series, along with up to five types of time series may be selected: the donor intenisty \texttt{d(n,t)}, acceptor intensity \texttt{a(n,t)}, FRET ration \texttt{f(n,t)}, the state of the viterbi path \texttt{z(n,t)} and the corresponding 
+FRET mean of the viterbi path \texttt{mu(n,t)}. 
 
-The Viterbi path is the most likely sequence of conformational states, which after analysis can be calculated for each time series based on the learned prior and posterior parameters. 
+The Viterbi path is the most likely sequence of conformational states, which after analysis can be calculated for each time series based on the learned prior and posterior parameters. Export of Viterbi paths is useful for comparing results with those from suites such as HAMMY\footnote{\url{http://bio.physics.illinois.edu/HaMMy.html}} and vbFRET\footnote{\url{http://vbfret.sourceforge.net}}, which perform independent analysis on each time series. Note that ebFRET, unlike HAMMY and vbFRET, does not need viterbi paths to calculate averaged kinetic rates over multiple time series. See the \emph{\nameref{sec:summary}} section for details.
 
-When using software suites such as HAMMY\footnote{\url{http://bio.physics.illinois.edu/HaMMy.html}} and vbFRET\footnote{\url{http://vbfret.sourceforge.net}}, which perform independent analysis on each time series, the Viterbi paths are needed to calculate the average transition rate across many time series. In ebFRET this quantity is calculated in a more statistically robust manner when exporting the analysis summary. However Viterbi paths may still be useful for purposes of performing custom post-processing or comparing results to those obtained with other methods. 
-
-Viterbi paths may be exported via \texttt{File} $\to$ \texttt{Export} $\to$ \texttt{"Viterbi Paths"}, and can be stored in either an ASCII (.dat) or Matlab (.mat) format. The data stored is the index \texttt{n} of the time series, the state \texttt{z(n,t)} of time series \texttt{n}, and the observation mean \texttt{mu(n,t))} associated  with this state. This data is written out as a stacked set of time series
+This data is written out as a stacked set of time series. If all singal types are selectd, this data contains the columns
 
 \begin{verbatim}
-    1      z(1, 1)       mu(1, 1)
-    1      z(1, 2)       mu(1, 2)
+    1      a(1, 1)       d(1, 1)       f(1, 1)       z(1, 1)       mu(1, 1)
+    1      a(1, 2)       d(1, 2)       f(1, 2)       z(1, 2)       mu(1, 2)
     ...
-    1      z(1, T(1))    mu(1, T(1))
+    1      a(1, T(N))    d(1, T(N))    f(1, T(N))    z(1, T(N))    mu(1, T(N))
     ...
-    N      z(N, T(N))    mu(N, T(N))
+    N      a(N, T(N))    d(N, T(N))    f(N, T(N))    z(N, T(N))    mu(N, T(N))
 \end{verbatim}
+
+\subsubsection{Export SMD (.json, .json.gz, .mat)}
+
+ Time series and analysis results can be exported to a single-molecule dataset (SMD) format for interoperability with other software such as SMART. 
+ Currently, ebFRET can only export a single set of analysis results (using a fixed number of states, not a range), which must be selected by the user during export.
+ Data can be written to JSON (\texttt{.json}), gzipped JSON (\text{.json.gz}) and Matlab (\texttt{.mat}) formats.
+
 
 \section{Advanced Topics}
 \label{sec:advanced}
