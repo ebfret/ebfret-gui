@@ -45,7 +45,7 @@ function write_smd(filename, series, analysis, varargin)
     
     % initialize smd data structure
     smd = struct();
-    smd.type = 'ebFRET_v_1_0_analysis';
+    smd.type = 'ebFRET_v_1_1_analysis';
     smd.columns = {'donor', 'acceptor', 'fret', 'viterbi_state', 'viterbi_mean'};
 
     % assingn global attributes
