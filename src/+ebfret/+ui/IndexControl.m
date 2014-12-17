@@ -22,7 +22,7 @@ classdef IndexControl < hgsetget
 
             ip = inputParser();
             ip.StructExpand = true;
-            ip.addParamValue('parent', gco(), @isnumeric);       
+            ip.addParamValue('parent', gco(), @ishandle);       
             ip.addParamValue('position', [0 0 1 1], @isnumeric);       
             ip.addParamValue('units', 'Normalized', ...
                              @(s) any(strcmpi(s, ...

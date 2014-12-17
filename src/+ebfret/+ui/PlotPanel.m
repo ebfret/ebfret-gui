@@ -16,7 +16,7 @@ classdef PlotPanel < hgsetget
             %   'axes' : {'name', [l b h w], ...}
             ip = inputParser();
             ip.StructExpand = true;
-            ip.addParamValue('parent', gco(), @isnumeric);       
+            ip.addParamValue('parent', gco(), @ishandle);       
             ip.addParamValue('position', [0 0 1 1], @isnumeric);       
             ip.addParamValue('title', 'Time Series', @isstr);       
             ip.addParamValue('units', 'Normalized', ...
