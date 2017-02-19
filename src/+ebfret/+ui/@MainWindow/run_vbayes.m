@@ -138,28 +138,30 @@ function run_vbayes(self, varargin)
 
             % store batch results
             ns = ns(~cellfun(@isempty, posterior(ns)));
-            self.analysis(a).posterior(ns) = [posterior{:}];
-            self.analysis(a).expect(ns) = [expect{:}];
-            self.analysis(a).viterbi(ns) = [viterbi{:}];
-            self.analysis(a).lowerbound(ns) = [lowerbound{:}];
-            self.analysis(a).restart(ns) = [restart{:}];
+            if ~isempty(ns)
+                self.analysis(a).posterior(ns) = [posterior{:}];
+                self.analysis(a).expect(ns) = [expect{:}];
+                self.analysis(a).viterbi(ns) = [viterbi{:}];
+                self.analysis(a).lowerbound(ns) = [lowerbound{:}];
+                self.analysis(a).restart(ns) = [restart{:}];
+                % update plots if redraw_interval exceeded
+                if toc(self.controls.redraw.series.last) > self.controls.redraw.series.interval
+                    % refresh series plots
+                    self.set_control('series', struct('value', ns(end)));
+                    drawnow();
+                    % set last refresh
+                    self.controls.redraw.series.last = tic();
+                end
+                if toc(self.controls.redraw.ensemble.last) > self.controls.redraw.ensemble.interval
+                    % refresh ensemble plots
+                    self.set_control('ensemble', struct('value', a));
+                    self.refresh('ensemble');
+                    drawnow();
+                    % set last refresh
+                    self.controls.redraw.ensemble.last = tic();
+                end
+            end
 
-            % update plots if redraw_interval exceeded
-            if toc(self.controls.redraw.series.last) > self.controls.redraw.series.interval
-                % refresh series plots
-                self.set_control('series', struct('value', ns(end)));
-                drawnow();
-                % set last refresh
-                self.controls.redraw.series.last = tic();
-            end
-            if toc(self.controls.redraw.ensemble.last) > self.controls.redraw.ensemble.interval
-                % refresh ensemble plots
-                self.set_control('ensemble', struct('value', a));
-                self.refresh('ensemble');
-                drawnow();
-                % set last refresh
-                self.controls.redraw.ensemble.last = tic();
-            end
         end
         % self.refresh('ensemble');
         % drawnow();
