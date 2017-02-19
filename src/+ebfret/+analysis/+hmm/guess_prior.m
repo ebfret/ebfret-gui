@@ -1,5 +1,5 @@
-function u = guess_prior(x, K, spread, strength)
-	% u = guess_prior(x, K, spread)
+function u = guess_prior(x, K, quantiles, strength)
+	% u = guess_prior(x, K, quantiles)
 	%
     % Returns initial guess for prior based on observation histogram.
     %
@@ -10,8 +10,8 @@ function u = guess_prior(x, K, spread, strength)
     % x : cell
     %   Time series data
     %
-    % spread : int (default: 5)
-    %   Spread of means of states
+    % quantiles : (1 x 2) (default: [0.01, 0.99])
+    %   Quantiles for positioning min and max state means
     %
     % strength : scalar (default: 1)
     %   Scale prior counts by this factor
@@ -23,14 +23,15 @@ function u = guess_prior(x, K, spread, strength)
     % u : struct
     %   Prior parameters 
     if nargin < 3
-        spread = 5;
+        quantiles = [0.01, 0.99];
     end
     if nargin < 4
         strength = 1;
     end
     T = cellfun(@length, x);
     x = cat(1, x{:});
-    [x_min, x_max] = ebfret.analysis.x_lim(x, spread);
+    x_min = quantile(x, quantiles(1));
+    x_max = quantile(x, quantiles(2));
 
     % pick state means to observation mean and variance
     mu = linspace(x_min, x_max, K+2)';
