@@ -47,6 +47,7 @@ function load_data(self, files, ftype)
         cancelled = true; 
         status = true;
     end
+    % file type 1: ebFRET saved session
     if ftype == 1
         if length(files) > 1
             warndlg('You cannot load more than one ebfret session at a time. The first selected file will be loaded.');
@@ -70,7 +71,7 @@ function load_data(self, files, ftype)
         self.set_control(rmfield(session.controls, ...
             {'ensemble', 'series', 'run_analysis'}));
     end
-
+    % file types 2-6: anything but ebFRET saved session
     if any(ftype == 2:6)
         dlg = waitbar(0, 'Loading', 'Name', 'Loading datasets', ...
                          'CreateCancelBtn', 'cancelled = true', ...
@@ -80,6 +81,7 @@ function load_data(self, files, ftype)
                 [void name] = fileparts(files{f});
                 waitbar((f-1)/(length(files)-1), dlg, ebfret.escape_tex(name));
                 switch ftype
+                % Raw donor-acceptor time series (.dat)
                 case 2
                     try
                         [dons{f} accs{f} labels{f}] = ...
@@ -88,6 +90,7 @@ function load_data(self, files, ftype)
                         error('ebfret:load_data:wrong_format', ...
                               'File "%s" could not be loaded as Raw data. Type "help ebfret.data.load_raw" for a description of supported formats.', files{f});
                     end
+                % SF-Tracer donor-acceptor time series (.tsv)
                 case 3
                     try
                         [dons{f} accs{f}] = ...
@@ -97,10 +100,13 @@ function load_data(self, files, ftype)
                         error('ebfret:load_data:wrong_format', ...
                               'File "%s" could not be loaded as SF-Tracer data.', files{f});
                     end
+                % SMD time series (.mat)
                 case 4
                     smd{f} = load(files{f});
+                % SMD time series (.json)
                 case 5
                     smd{f} = ebfret.io.load_json(files{f});
+                % SMD time series (.json.gz)
                 case 6
                     smd{f} = ebfret.io.load_json(files{f}, 'gzip', true);
                 end
@@ -110,8 +116,10 @@ function load_data(self, files, ftype)
             end
 
             switch ftype
+            % Raw (.dat) & SF-Tracer (.tsv)
             case {2,3}
                 num_series = sum(cellfun(@length, labels));
+            % SMD (.mat, .json, .json.gz)
             case {4,5,6}
                 num_series = sum(cellfun(@(s) length(s.data), smd));
             end
@@ -140,6 +148,7 @@ function load_data(self, files, ftype)
                                 'exclude', {});
 
                 switch ftype
+                % Raw (.dat) & SF-Tracer (.tsv)
                 case {2,3}
                     % strip empty time series
                     ns = find(~(cellfun(@isempty, dons{f})) & ~(cellfun(@isempty, accs{f})));
@@ -165,6 +174,7 @@ function load_data(self, files, ftype)
                         series(n).crop.min = 1;
                         series(n).crop.max = length(series(n).time);
                     end
+                % SMD (.mat, .json, .json.gz)
                 case {4,5,6}
                     channels = ebfret.ui.dialog.assign_smd_channels(smd{f}.columns);
                     series = struct([]);
@@ -172,6 +182,7 @@ function load_data(self, files, ftype)
                     for n = 1:length(data)
                         [void series(n).file] = fileparts(files{f});
                         series(n).label = data(n).id;
+                        series(n).group = group;
                         series(n).time = data(n).index;
                         if channels.fret == channels.fret
                             series(n).donor = zeros(size(data(n).index));
